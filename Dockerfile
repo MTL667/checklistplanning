@@ -5,32 +5,26 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
 # Copy package files
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json package-lock.json ./
 COPY prisma ./prisma
 
 # Install all dependencies (including dev for build)
-RUN pnpm install --frozen-lockfile
+RUN npm ci
 
 # Stage 2: Build
 FROM node:20-alpine AS builder
 WORKDIR /app
-
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma client
-RUN pnpm prisma generate
+RUN npx prisma generate
 
 # Build the application
-RUN pnpm build
+RUN npm run build
 
 # Stage 3: Production
 FROM node:20-alpine AS runner
@@ -40,9 +34,6 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NUXT_HOST=0.0.0.0
 ENV NUXT_PORT=3000
-
-# Install pnpm for prisma migrations
-RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
@@ -54,9 +45,6 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./package.json
-
-# Install only prisma CLI for migrations
-RUN pnpm add -g prisma
 
 # Set ownership
 RUN chown -R nuxtjs:nodejs /app
