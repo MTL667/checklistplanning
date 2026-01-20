@@ -41,16 +41,14 @@ RUN adduser --system --uid 1001 nuxtjs
 
 # Copy built application and necessary files
 COPY --from=builder /app/.output ./.output
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./package.json
 
 # Create startup script
 RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'echo "Running database migrations..."' >> /app/start.sh && \
-    echo 'npx prisma migrate deploy' >> /app/start.sh && \
+    echo './node_modules/.bin/prisma migrate deploy' >> /app/start.sh && \
     echo 'echo "Starting application..."' >> /app/start.sh && \
     echo 'exec node .output/server/index.mjs' >> /app/start.sh && \
     chmod +x /app/start.sh
