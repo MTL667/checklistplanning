@@ -60,9 +60,11 @@ function timeAgo(dateStr: string): string {
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
           Admin Dashboard
         </h2>
-        <p class="text-gray-500 dark:text-gray-400">
-          {{ new Date().toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }) }}
-        </p>
+        <ClientOnly>
+          <p class="text-gray-500 dark:text-gray-400">
+            {{ new Date().toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }) }}
+          </p>
+        </ClientOnly>
       </div>
       <UButton
         icon="i-lucide-refresh-cw"

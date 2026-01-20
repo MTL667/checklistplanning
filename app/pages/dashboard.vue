@@ -57,9 +57,11 @@ function formatCurrency(amount: number): string {
       <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
         {{ t('app.welcome') }}, {{ user?.name }}!
       </h2>
-      <p class="text-gray-500 dark:text-gray-400">
-        {{ new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}
-      </p>
+      <ClientOnly>
+        <p class="text-gray-500 dark:text-gray-400">
+          {{ new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}
+        </p>
+      </ClientOnly>
     </div>
 
     <!-- Quick Stats -->

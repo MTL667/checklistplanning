@@ -100,7 +100,9 @@ const isActive = (path: string) => {
         </slot>
 
         <div class="flex items-center gap-4">
-          <RealtimeStatus />
+          <ClientOnly>
+            <RealtimeStatus />
+          </ClientOnly>
           <LanguageToggle />
           <UColorModeButton />
         </div>
