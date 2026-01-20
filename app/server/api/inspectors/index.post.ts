@@ -13,6 +13,13 @@ const createInspectorSchema = z.object({
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
 
+  if (!session?.user) {
+    throw createError({
+      statusCode: 401,
+      message: 'Not authenticated'
+    })
+  }
+
   // Check admin role
   if (session.user.role !== 'ADMIN') {
     throw createError({
