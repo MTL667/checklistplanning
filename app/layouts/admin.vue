@@ -64,25 +64,35 @@ const isActive = (path: string) => {
 
       <!-- User Info -->
       <div class="border-t border-gray-200 p-4 dark:border-gray-800">
-        <div class="flex items-center gap-3">
-          <UAvatar :alt="user?.name" size="sm" />
-          <div class="flex-1 overflow-hidden">
-            <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
-              {{ user?.name }}
-            </p>
-            <p class="truncate text-xs text-gray-500 dark:text-gray-400">
-              {{ t(`roles.${user?.role?.toLowerCase()}`) }}
-            </p>
+        <ClientOnly>
+          <div class="flex items-center gap-3">
+            <UAvatar :alt="user?.name" size="sm" />
+            <div class="flex-1 overflow-hidden">
+              <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
+                {{ user?.name }}
+              </p>
+              <p class="truncate text-xs text-gray-500 dark:text-gray-400">
+                {{ user?.role ? t(`roles.${user.role.toLowerCase()}`) : '' }}
+              </p>
+            </div>
+            <UButton
+              icon="i-lucide-log-out"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              :loading="isLoggingOut"
+              @click="logout"
+            />
           </div>
-          <UButton
-            icon="i-lucide-log-out"
-            variant="ghost"
-            color="neutral"
-            size="sm"
-            :loading="isLoggingOut"
-            @click="logout"
-          />
-        </div>
+          <template #fallback>
+            <div class="flex items-center gap-3">
+              <div class="h-8 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+              <div class="flex-1">
+                <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              </div>
+            </div>
+          </template>
+        </ClientOnly>
       </div>
     </aside>
 
