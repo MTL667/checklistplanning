@@ -1,5 +1,5 @@
-import { createMsalClient, getRedirectUri, SCOPES, parseIdTokenClaims, type UserSession } from '../../utils/auth'
-import prisma from '../../utils/prisma'
+import { createMsalClient, getRedirectUri, SCOPES, parseIdTokenClaims, type UserSession } from '../../../utils/auth'
+import prisma from '../../../utils/prisma'
 
 /**
  * GET /auth/microsoft/callback
