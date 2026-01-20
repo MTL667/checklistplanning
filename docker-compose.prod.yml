@@ -1,0 +1,43 @@
+# Docker Compose for Production (Easypanel compatible)
+# Use this as a reference for Easypanel configuration
+version: '3.8'
+
+services:
+  # Application
+  planning-checklist:
+    image: ${DOCKER_REGISTRY:-ghcr.io}/planning-checklist:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # Database
+      - DATABASE_URL=${DATABASE_URL}
+      
+      # Session (generate with: openssl rand -base64 32)
+      - NUXT_SESSION_SECRET=${NUXT_SESSION_SECRET}
+      
+      # App URL (your production domain)
+      - NUXT_PUBLIC_APP_URL=${NUXT_PUBLIC_APP_URL}
+      
+      # Microsoft Entra ID
+      - NUXT_ENTRA_CLIENT_ID=${NUXT_ENTRA_CLIENT_ID}
+      - NUXT_ENTRA_CLIENT_SECRET=${NUXT_ENTRA_CLIENT_SECRET}
+      - NUXT_ENTRA_TENANT_ID=${NUXT_ENTRA_TENANT_ID}
+    
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    
+    restart: unless-stopped
+    
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M

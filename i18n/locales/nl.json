@@ -1,0 +1,150 @@
+{
+  "app": {
+    "name": "Planning Checklist",
+    "loading": "Laden...",
+    "error": "Er is een fout opgetreden",
+    "welcome": "Welkom bij Planning Checklist"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "turnover": "Omzet",
+    "checklist": "Checklist",
+    "summary": "Overzicht",
+    "inspectors": "Inspecteurs",
+    "planners": "Planners",
+    "targets": "Doelen",
+    "tasks": "Taken",
+    "absences": "Afwezigheden",
+    "reports": "Rapporten",
+    "settings": "Instellingen"
+  },
+  "auth": {
+    "login": "Inloggen",
+    "logout": "Uitloggen",
+    "loginWithMicrosoft": "Inloggen met Microsoft",
+    "loggingIn": "Bezig met inloggen...",
+    "logoutConfirm": "Weet u zeker dat u wilt uitloggen?"
+  },
+  "roles": {
+    "admin": "Beheerder",
+    "planner": "Planner"
+  },
+  "common": {
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "add": "Toevoegen",
+    "create": "Aanmaken",
+    "search": "Zoeken",
+    "filter": "Filteren",
+    "export": "Exporteren",
+    "import": "Importeren",
+    "yes": "Ja",
+    "no": "Nee",
+    "confirm": "Bevestigen",
+    "back": "Terug",
+    "next": "Volgende",
+    "previous": "Vorige",
+    "close": "Sluiten",
+    "loading": "Laden...",
+    "noData": "Geen gegevens beschikbaar",
+    "actions": "Acties",
+    "status": "Status",
+    "date": "Datum",
+    "name": "Naam",
+    "description": "Beschrijving",
+    "total": "Totaal",
+    "average": "Gemiddelde",
+    "target": "Doel",
+    "actual": "Werkelijk"
+  },
+  "turnover": {
+    "title": "Omzet Invoer",
+    "daily": "Dagelijkse omzet",
+    "weekly": "Wekelijkse omzet",
+    "weeklyTotal": "Week totaal",
+    "dailyTotal": "Dag totaal",
+    "inspectorAverage": "Gem. per inspecteur",
+    "successDays": "Succesvolle dagen",
+    "belowTarget": "Onder doel",
+    "onTarget": "Op doel",
+    "aboveTarget": "Boven doel",
+    "enterAmount": "Voer bedrag in",
+    "saved": "Opgeslagen",
+    "saving": "Opslaan..."
+  },
+  "checklist": {
+    "title": "Dagelijkse Checklist",
+    "completed": "Voltooid",
+    "pending": "In afwachting",
+    "markComplete": "Markeer als voltooid",
+    "markIncomplete": "Markeer als onvoltooid",
+    "progress": "{completed} van {total} voltooid",
+    "allComplete": "Alle taken voltooid!"
+  },
+  "inspector": {
+    "title": "Inspecteurs",
+    "name": "Naam inspecteur",
+    "assignedTo": "Toegewezen aan",
+    "unassigned": "Niet toegewezen",
+    "reassign": "Opnieuw toewijzen",
+    "bulkAssign": "Bulk toewijzen",
+    "history": "Toewijzingsgeschiedenis"
+  },
+  "planner": {
+    "title": "Planners",
+    "inspectorCount": "Aantal inspecteurs",
+    "active": "Actief",
+    "absent": "Afwezig"
+  },
+  "absence": {
+    "title": "Afwezigheden",
+    "markAbsent": "Markeer als afwezig",
+    "markReturn": "Markeer als teruggekeerd",
+    "reason": "Reden",
+    "sick": "Ziek",
+    "leave": "Verlof",
+    "redistribute": "Inspecteurs herverdelen",
+    "restore": "Inspecteurs herstellen",
+    "startDate": "Startdatum",
+    "endDate": "Einddatum"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalPlanners": "Totaal planners",
+    "totalInspectors": "Totaal inspecteurs",
+    "todayTurnover": "Omzet vandaag",
+    "checklistCompletion": "Checklist voltooiing",
+    "alerts": "Waarschuwingen",
+    "live": "Live",
+    "offline": "Offline"
+  },
+  "reports": {
+    "title": "Rapporten",
+    "turnoverHistory": "Omzet historie",
+    "targetAchievement": "Doelrealisatie",
+    "checklistCompletion": "Checklist voltooiing",
+    "exportCsv": "Exporteer naar CSV",
+    "exportExcel": "Exporteer naar Excel",
+    "dateRange": "Datumbereik",
+    "from": "Van",
+    "to": "Tot"
+  },
+  "validation": {
+    "required": "Dit veld is verplicht",
+    "invalidEmail": "Ongeldig e-mailadres",
+    "invalidNumber": "Voer een geldig nummer in",
+    "minValue": "Minimale waarde is {min}",
+    "maxValue": "Maximale waarde is {max}"
+  },
+  "errors": {
+    "generic": "Er is iets misgegaan",
+    "notFound": "Niet gevonden",
+    "unauthorized": "Niet geautoriseerd",
+    "forbidden": "Toegang geweigerd",
+    "serverError": "Serverfout",
+    "networkError": "Netwerkfout",
+    "tryAgain": "Probeer het opnieuw"
+  }
+}

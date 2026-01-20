@@ -1,0 +1,150 @@
+{
+  "app": {
+    "name": "Planning Checklist",
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "welcome": "Bienvenue sur Planning Checklist"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "turnover": "Chiffre d'affaires",
+    "checklist": "Liste de contrôle",
+    "summary": "Résumé",
+    "inspectors": "Inspecteurs",
+    "planners": "Planificateurs",
+    "targets": "Objectifs",
+    "tasks": "Tâches",
+    "absences": "Absences",
+    "reports": "Rapports",
+    "settings": "Paramètres"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "loginWithMicrosoft": "Se connecter avec Microsoft",
+    "loggingIn": "Connexion en cours...",
+    "logoutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?"
+  },
+  "roles": {
+    "admin": "Administrateur",
+    "planner": "Planificateur"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "create": "Créer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "import": "Importer",
+    "yes": "Oui",
+    "no": "Non",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "close": "Fermer",
+    "loading": "Chargement...",
+    "noData": "Aucune donnée disponible",
+    "actions": "Actions",
+    "status": "Statut",
+    "date": "Date",
+    "name": "Nom",
+    "description": "Description",
+    "total": "Total",
+    "average": "Moyenne",
+    "target": "Objectif",
+    "actual": "Réel"
+  },
+  "turnover": {
+    "title": "Saisie du chiffre d'affaires",
+    "daily": "Chiffre d'affaires quotidien",
+    "weekly": "Chiffre d'affaires hebdomadaire",
+    "weeklyTotal": "Total semaine",
+    "dailyTotal": "Total jour",
+    "inspectorAverage": "Moy. par inspecteur",
+    "successDays": "Jours réussis",
+    "belowTarget": "Sous l'objectif",
+    "onTarget": "À l'objectif",
+    "aboveTarget": "Au-dessus de l'objectif",
+    "enterAmount": "Entrez le montant",
+    "saved": "Enregistré",
+    "saving": "Enregistrement..."
+  },
+  "checklist": {
+    "title": "Liste de contrôle quotidienne",
+    "completed": "Terminé",
+    "pending": "En attente",
+    "markComplete": "Marquer comme terminé",
+    "markIncomplete": "Marquer comme non terminé",
+    "progress": "{completed} sur {total} terminé",
+    "allComplete": "Toutes les tâches terminées !"
+  },
+  "inspector": {
+    "title": "Inspecteurs",
+    "name": "Nom de l'inspecteur",
+    "assignedTo": "Assigné à",
+    "unassigned": "Non assigné",
+    "reassign": "Réassigner",
+    "bulkAssign": "Assignation en masse",
+    "history": "Historique des assignations"
+  },
+  "planner": {
+    "title": "Planificateurs",
+    "inspectorCount": "Nombre d'inspecteurs",
+    "active": "Actif",
+    "absent": "Absent"
+  },
+  "absence": {
+    "title": "Absences",
+    "markAbsent": "Marquer comme absent",
+    "markReturn": "Marquer comme de retour",
+    "reason": "Raison",
+    "sick": "Maladie",
+    "leave": "Congé",
+    "redistribute": "Redistribuer les inspecteurs",
+    "restore": "Restaurer les inspecteurs",
+    "startDate": "Date de début",
+    "endDate": "Date de fin"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "totalPlanners": "Total planificateurs",
+    "totalInspectors": "Total inspecteurs",
+    "todayTurnover": "Chiffre d'affaires du jour",
+    "checklistCompletion": "Achèvement liste de contrôle",
+    "alerts": "Alertes",
+    "live": "En direct",
+    "offline": "Hors ligne"
+  },
+  "reports": {
+    "title": "Rapports",
+    "turnoverHistory": "Historique du chiffre d'affaires",
+    "targetAchievement": "Réalisation des objectifs",
+    "checklistCompletion": "Achèvement de la liste de contrôle",
+    "exportCsv": "Exporter en CSV",
+    "exportExcel": "Exporter en Excel",
+    "dateRange": "Plage de dates",
+    "from": "De",
+    "to": "À"
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire",
+    "invalidEmail": "Adresse e-mail invalide",
+    "invalidNumber": "Entrez un nombre valide",
+    "minValue": "La valeur minimale est {min}",
+    "maxValue": "La valeur maximale est {max}"
+  },
+  "errors": {
+    "generic": "Quelque chose s'est mal passé",
+    "notFound": "Non trouvé",
+    "unauthorized": "Non autorisé",
+    "forbidden": "Accès refusé",
+    "serverError": "Erreur serveur",
+    "networkError": "Erreur réseau",
+    "tryAgain": "Réessayer"
+  }
+}

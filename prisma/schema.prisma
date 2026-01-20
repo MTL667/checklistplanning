@@ -1,0 +1,184 @@
+// Planning Checklist Application - Database Schema
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum Role {
+  ADMIN
+  PLANNER
+}
+
+enum Locale {
+  nl
+  fr
+}
+
+enum AbsenceReason {
+  SICK
+  LEAVE
+}
+
+enum TaskFrequency {
+  DAILY
+  WEEKLY
+}
+
+// User model - represents authenticated users
+model User {
+  id        String   @id @default(uuid())
+  entraId   String   @unique
+  email     String   @unique
+  name      String
+  role      Role     @default(PLANNER)
+  locale    Locale   @default(nl)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  inspectors        Inspector[]
+  turnoverEntries   TurnoverEntry[]
+  checklistEntries  ChecklistEntry[]
+  absences          AbsenceRecord[]
+  reassignmentsTo   InspectorReassignment[] @relation("ToPlanner")
+
+  @@map("users")
+}
+
+// Inspector model - represents inspectors managed by planners
+model Inspector {
+  id            String   @id @default(uuid())
+  name          String
+  plannerId     String?
+  defaultTarget Decimal  @default(0) @db.Decimal(10, 2)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  planner         User?                   @relation(fields: [plannerId], references: [id])
+  turnoverEntries TurnoverEntry[]
+  targets         TurnoverTarget[]
+  reassignments   InspectorReassignment[]
+
+  @@map("inspectors")
+}
+
+// TurnoverEntry model - daily turnover recorded per inspector
+model TurnoverEntry {
+  id          String   @id @default(uuid())
+  inspectorId String
+  plannerId   String
+  date        DateTime @db.Date
+  amount      Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  inspector Inspector @relation(fields: [inspectorId], references: [id])
+  planner   User      @relation(fields: [plannerId], references: [id])
+
+  @@unique([inspectorId, date])
+  @@index([plannerId, date])
+  @@map("turnover_entries")
+}
+
+// TurnoverTarget model - target amounts set by admin
+model TurnoverTarget {
+  id          String    @id @default(uuid())
+  inspectorId String
+  date        DateTime? @db.Date
+  amount      Decimal   @db.Decimal(10, 2)
+  isDefault   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  inspector Inspector @relation(fields: [inspectorId], references: [id])
+
+  @@unique([inspectorId, date])
+  @@map("turnover_targets")
+}
+
+// TaskType model - configurable checklist task types
+model TaskType {
+  id            String        @id @default(uuid())
+  name          String
+  nameNl        String
+  nameFr        String
+  description   String?
+  descriptionNl String?
+  descriptionFr String?
+  frequency     TaskFrequency @default(DAILY)
+  sortOrder     Int           @default(0)
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  entries ChecklistEntry[]
+
+  @@map("task_types")
+}
+
+// ChecklistEntry model - task completion records
+model ChecklistEntry {
+  id          String    @id @default(uuid())
+  taskTypeId  String
+  plannerId   String
+  date        DateTime  @db.Date
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  taskType TaskType @relation(fields: [taskTypeId], references: [id])
+  planner  User     @relation(fields: [plannerId], references: [id])
+
+  @@unique([taskTypeId, plannerId, date])
+  @@index([plannerId, date])
+  @@map("checklist_entries")
+}
+
+// AbsenceRecord model - planner absence tracking
+model AbsenceRecord {
+  id        String   @id @default(uuid())
+  plannerId String
+  reason    String?
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  planner       User                    @relation(fields: [plannerId], references: [id])
+  reassignments InspectorReassignment[]
+
+  @@index([plannerId])
+  @@map("absence_records")
+}
+
+// InspectorReassignment model - temporary reassignments during absences
+model InspectorReassignment {
+  id                 String    @id @default(uuid())
+  inspectorId        String
+  absenceId          String
+  temporaryPlannerId String
+  createdAt          DateTime  @default(now())
+  restoredAt         DateTime?
+
+  // Relations
+  inspector        Inspector     @relation(fields: [inspectorId], references: [id])
+  absence          AbsenceRecord @relation(fields: [absenceId], references: [id])
+  temporaryPlanner User          @relation("ToPlanner", fields: [temporaryPlannerId], references: [id])
+
+  @@unique([absenceId, inspectorId])
+  @@index([absenceId])
+  @@map("inspector_reassignments")
+}
