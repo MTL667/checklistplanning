@@ -10,14 +10,6 @@ const toast = useToast()
 // Fetch users
 const { data: users, refresh } = await useFetch('/api/users')
 
-// Table columns
-const columns = [
-  { key: 'name', label: t('common.name') },
-  { key: 'email', label: 'Email' },
-  { key: 'role', label: t('common.status') },
-  { key: 'inspectorCount', label: t('planner.inspectorCount') },
-  { key: 'actions', label: t('common.actions') }
-]
 
 // Edit user modal
 const isEditing = ref(false)
@@ -78,38 +70,66 @@ const roleOptions = [
 
     <!-- Users Table -->
     <UCard>
-      <UTable :columns="columns" :rows="users || []">
-        <template #name-data="{ row }">
-          <div class="flex items-center gap-3">
-            <UAvatar :alt="row.name" size="sm" />
-            <span class="font-medium">{{ row.name }}</span>
-          </div>
-        </template>
-
-        <template #role-data="{ row }">
-          <UBadge
-            :color="row.role === 'ADMIN' ? 'purple' : 'blue'"
-            variant="soft"
-          >
-            {{ t(`roles.${row.role.toLowerCase()}`) }}
-          </UBadge>
-        </template>
-
-        <template #inspectorCount-data="{ row }">
-          <span class="text-gray-600 dark:text-gray-400">
-            {{ row.inspectorCount }} {{ t('nav.inspectors').toLowerCase() }}
-          </span>
-        </template>
-
-        <template #actions-data="{ row }">
-          <UButton
-            icon="i-lucide-edit"
-            variant="ghost"
-            size="sm"
-            @click="openEditModal(row)"
-          />
-        </template>
-      </UTable>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead>
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                {{ t('common.name') }}
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                Email
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                {{ t('common.status') }}
+              </th>
+              <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                {{ t('planner.inspectorCount') }}
+              </th>
+              <th class="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                {{ t('common.actions') }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50 dark:hover:bg-gray-800">
+              <td class="whitespace-nowrap px-4 py-3">
+                <div class="flex items-center gap-3">
+                  <UAvatar :alt="user.name" size="sm" />
+                  <span class="font-medium text-gray-900 dark:text-white">{{ user.name }}</span>
+                </div>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-400">
+                {{ user.email }}
+              </td>
+              <td class="whitespace-nowrap px-4 py-3">
+                <UBadge
+                  :color="user.role === 'ADMIN' ? 'purple' : 'blue'"
+                  variant="soft"
+                >
+                  {{ t(`roles.${user.role.toLowerCase()}`) }}
+                </UBadge>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-400">
+                {{ user.inspectorCount || 0 }} {{ t('nav.inspectors').toLowerCase() }}
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-right">
+                <UButton
+                  icon="i-lucide-edit"
+                  variant="ghost"
+                  size="sm"
+                  @click="openEditModal(user)"
+                />
+              </td>
+            </tr>
+            <tr v-if="!users?.length">
+              <td colspan="5" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                {{ t('common.noData') }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </UCard>
 
     <!-- Edit Role Modal -->
