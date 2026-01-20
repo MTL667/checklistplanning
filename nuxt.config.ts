@@ -41,7 +41,10 @@ export default defineNuxtConfig({
     entraClientId: process.env.NUXT_ENTRA_CLIENT_ID,
     entraClientSecret: process.env.NUXT_ENTRA_CLIENT_SECRET,
     entraTenantId: process.env.NUXT_ENTRA_TENANT_ID || 'common',
-    sessionSecret: process.env.NUXT_SESSION_SECRET,
+    // Session password for nuxt-auth-utils (accepts both names)
+    session: {
+      password: process.env.NUXT_SESSION_PASSWORD || process.env.NUXT_SESSION_SECRET || ''
+    },
 
     // Public (exposed to client)
     public: {
