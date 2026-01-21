@@ -17,7 +17,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Increase Node.js memory limit for build
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
@@ -44,10 +44,6 @@ RUN adduser --system --uid 1001 nuxtjs
 
 # Copy only what's needed for production
 COPY --from=builder /app/.output ./.output
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/prisma ./prisma
 
 # Set ownership
 RUN chown -R nuxtjs:nodejs /app
@@ -58,5 +54,5 @@ USER nuxtjs
 # Expose port
 EXPOSE 3000
 
-# Start command - run migrations then start app
-CMD ["sh", "-c", "node_modules/prisma/build/index.js migrate deploy && node .output/server/index.mjs"]
+# Start the application directly (no migrations - run separately)
+CMD ["node", ".output/server/index.mjs"]
