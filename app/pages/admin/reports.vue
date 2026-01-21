@@ -301,9 +301,11 @@ function getPerformanceBg(perf: number): string {
       </UCard>
 
       <!-- Generated timestamp -->
-      <p class="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
-        Generated: {{ new Date(report.generatedAt).toLocaleString() }}
-      </p>
+      <ClientOnly>
+        <p class="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
+          Generated: {{ new Date(report.generatedAt).toLocaleString() }}
+        </p>
+      </ClientOnly>
     </template>
   </div>
 </template>

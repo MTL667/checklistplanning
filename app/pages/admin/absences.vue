@@ -8,8 +8,12 @@ const { t } = useI18n()
 const toast = useToast()
 
 // Fetch data
-const { data: absences, refresh: refreshAbsences } = await useFetch('/api/absences')
-const { data: users } = await useFetch('/api/users')
+const { data: absences, refresh: refreshAbsences } = await useFetch('/api/absences', {
+  server: false
+})
+const { data: users } = await useFetch('/api/users', {
+  server: false
+})
 
 const planners = computed(() =>
   (users.value || []).filter(u => u.role === 'PLANNER' || u.role === 'ADMIN')
@@ -17,6 +21,7 @@ const planners = computed(() =>
 
 // Create absence modal
 const isCreating = ref(false)
+const isCreatingAbsence = ref(false)
 const newAbsence = ref({
   plannerId: '',
   startDate: '',
@@ -27,6 +32,7 @@ const newAbsence = ref({
 async function createAbsence() {
   if (!newAbsence.value.plannerId || !newAbsence.value.startDate || !newAbsence.value.endDate) return
 
+  isCreatingAbsence.value = true
   try {
     await $fetch('/api/absences', {
       method: 'POST',
@@ -48,11 +54,14 @@ async function createAbsence() {
       description: error.data?.message || 'Failed to create absence',
       color: 'error'
     })
+  } finally {
+    isCreatingAbsence.value = false
   }
 }
 
 // Reassign modal
 const isReassigning = ref(false)
+const isSavingReassignments = ref(false)
 const selectedAbsence = ref<any>(null)
 const reassignments = ref<Record<string, string>>({})
 
@@ -60,7 +69,7 @@ function openReassignModal(absence: any) {
   selectedAbsence.value = absence
   // Initialize with existing reassignments
   reassignments.value = {}
-  absence.reassignments.forEach((r: any) => {
+  absence.reassignments?.forEach((r: any) => {
     reassignments.value[r.inspectorId] = r.temporaryPlannerId
   })
   isReassigning.value = true
@@ -69,6 +78,7 @@ function openReassignModal(absence: any) {
 async function saveReassignments() {
   if (!selectedAbsence.value) return
 
+  isSavingReassignments.value = true
   try {
     // Save all reassignments
     const promises = Object.entries(reassignments.value)
@@ -100,6 +110,8 @@ async function saveReassignments() {
       description: error.data?.message || 'Failed to save reassignments',
       color: 'error'
     })
+  } finally {
+    isSavingReassignments.value = false
   }
 }
 
@@ -134,22 +146,9 @@ const availablePlanners = computed(() => {
   return planners.value.filter(p => p.id !== selectedAbsence.value.plannerId)
 })
 
-const plannerOptions = computed(() =>
-  planners.value.map(p => ({ value: p.id, label: p.name }))
-)
-
-const availablePlannerOptions = computed(() => [
-  { value: '', label: 'Select planner...' },
-  ...availablePlanners.value.map(p => ({ value: p.id, label: p.name }))
-])
-
 // Separate active and past absences
 const activeAbsences = computed(() =>
   (absences.value || []).filter(a => a.isActive)
-)
-
-const pastAbsences = computed(() =>
-  (absences.value || []).filter(a => !a.isActive)
 )
 </script>
 
@@ -236,7 +235,7 @@ const pastAbsences = computed(() =>
       </div>
     </div>
 
-    <!-- Past/Future Absences -->
+    <!-- All Absences -->
     <div>
       <h3 class="mb-4 text-lg font-semibold text-gray-700 dark:text-gray-300">
         All Absences
@@ -254,7 +253,7 @@ const pastAbsences = computed(() =>
                   {{ absence.plannerName }}
                 </span>
                 <UBadge
-                  :color="absence.isActive ? 'red' : 'gray'"
+                  :color="absence.isActive ? 'red' : 'neutral'"
                   variant="soft"
                   size="xs"
                 >
@@ -291,7 +290,7 @@ const pastAbsences = computed(() =>
     </div>
 
     <!-- Create Absence Modal -->
-    <UModal v-model="isCreating">
+    <UModal v-model:open="isCreating">
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
@@ -300,30 +299,51 @@ const pastAbsences = computed(() =>
           </div>
         </template>
 
-        <div class="space-y-4">
-          <UFormGroup label="Planner">
-            <USelect
-              v-model="newAbsence.plannerId"
-              :options="plannerOptions"
-              option-attribute="label"
-              value-attribute="value"
-              placeholder="Select planner"
-            />
-          </UFormGroup>
+        <template #content>
+          <div class="space-y-4">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Planner</label>
+              <select
+                v-model="newAbsence.plannerId"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="">Select planner...</option>
+                <option v-for="planner in planners" :key="planner.id" :value="planner.id">
+                  {{ planner.name }}
+                </option>
+              </select>
+            </div>
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormGroup label="Start Date">
-              <UInput v-model="newAbsence.startDate" type="date" />
-            </UFormGroup>
-            <UFormGroup label="End Date">
-              <UInput v-model="newAbsence.endDate" type="date" />
-            </UFormGroup>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+                <input
+                  v-model="newAbsence.startDate"
+                  type="date"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                >
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+                <input
+                  v-model="newAbsence.endDate"
+                  type="date"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                >
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Reason (optional)</label>
+              <input
+                v-model="newAbsence.reason"
+                type="text"
+                placeholder="Sick leave, vacation, etc."
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
+            </div>
           </div>
-
-          <UFormGroup label="Reason (optional)">
-            <UInput v-model="newAbsence.reason" placeholder="Sick leave, vacation, etc." />
-          </UFormGroup>
-        </div>
+        </template>
 
         <template #footer>
           <div class="flex justify-end gap-3">
@@ -331,6 +351,7 @@ const pastAbsences = computed(() =>
             <UButton
               :label="t('common.create')"
               :disabled="!newAbsence.plannerId || !newAbsence.startDate || !newAbsence.endDate"
+              :loading="isCreatingAbsence"
               @click="createAbsence"
             />
           </div>
@@ -339,7 +360,7 @@ const pastAbsences = computed(() =>
     </UModal>
 
     <!-- Reassign Modal -->
-    <UModal v-model="isReassigning">
+    <UModal v-model:open="isReassigning">
       <UCard v-if="selectedAbsence">
         <template #header>
           <div class="flex items-center justify-between">
@@ -350,41 +371,45 @@ const pastAbsences = computed(() =>
           </div>
         </template>
 
-        <div class="space-y-4">
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            Assign each inspector to a temporary planner during the absence period.
-          </p>
+        <template #content>
+          <div class="space-y-4">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Assign each inspector to a temporary planner during the absence period.
+            </p>
 
-          <div
-            v-for="inspector in selectedAbsence.inspectors"
-            :key="inspector.id"
-            class="flex items-center gap-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
-          >
-            <div class="flex-1">
-              <p class="font-medium text-gray-900 dark:text-white">
-                {{ inspector.name }}
-              </p>
+            <div
+              v-for="inspector in selectedAbsence.inspectors"
+              :key="inspector.id"
+              class="flex items-center gap-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+            >
+              <div class="flex-1">
+                <p class="font-medium text-gray-900 dark:text-white">
+                  {{ inspector.name }}
+                </p>
+              </div>
+              <div class="w-48">
+                <select
+                  v-model="reassignments[inspector.id]"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                >
+                  <option value="">Select planner...</option>
+                  <option v-for="planner in availablePlanners" :key="planner.id" :value="planner.id">
+                    {{ planner.name }}
+                  </option>
+                </select>
+              </div>
             </div>
-            <div class="w-48">
-              <USelect
-                v-model="reassignments[inspector.id]"
-                :options="availablePlannerOptions"
-                option-attribute="label"
-                value-attribute="value"
-                size="sm"
-              />
+
+            <div v-if="!selectedAbsence.inspectors?.length" class="py-4 text-center text-gray-500 dark:text-gray-400">
+              No inspectors to reassign
             </div>
           </div>
-
-          <div v-if="!selectedAbsence.inspectors?.length" class="py-4 text-center text-gray-500 dark:text-gray-400">
-            No inspectors to reassign
-          </div>
-        </div>
+        </template>
 
         <template #footer>
           <div class="flex justify-end gap-3">
             <UButton :label="t('common.cancel')" variant="ghost" @click="isReassigning = false" />
-            <UButton :label="t('common.save')" @click="saveReassignments" />
+            <UButton :label="t('common.save')" :loading="isSavingReassignments" @click="saveReassignments" />
           </div>
         </template>
       </UCard>

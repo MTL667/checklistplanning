@@ -8,10 +8,13 @@ const { t, locale } = useI18n()
 const toast = useToast()
 
 // Fetch tasks
-const { data: tasks, refresh } = await useFetch('/api/checklist/tasks')
+const { data: tasks, refresh } = await useFetch('/api/checklist/tasks', {
+  server: false
+})
 
 // Create task modal
 const isCreating = ref(false)
+const isCreatingTask = ref(false)
 const newTask = ref({
   nameNl: '',
   nameFr: '',
@@ -24,6 +27,7 @@ const newTask = ref({
 async function createTask() {
   if (!newTask.value.nameNl.trim() || !newTask.value.nameFr.trim()) return
 
+  isCreatingTask.value = true
   try {
     await $fetch('/api/checklist/tasks', {
       method: 'POST',
@@ -52,11 +56,14 @@ async function createTask() {
       description: error.data?.message || 'Failed to create task',
       color: 'error'
     })
+  } finally {
+    isCreatingTask.value = false
   }
 }
 
 // Edit task modal
 const isEditing = ref(false)
+const isSavingTask = ref(false)
 const editingTask = ref<any>(null)
 
 function openEditModal(task: any) {
@@ -67,6 +74,7 @@ function openEditModal(task: any) {
 async function saveTask() {
   if (!editingTask.value) return
 
+  isSavingTask.value = true
   try {
     await $fetch(`/api/checklist/tasks/${editingTask.value.id}`, {
       method: 'PATCH',
@@ -95,6 +103,8 @@ async function saveTask() {
       description: error.data?.message || 'Failed to update task',
       color: 'error'
     })
+  } finally {
+    isSavingTask.value = false
   }
 }
 
@@ -114,11 +124,6 @@ async function toggleActive(task: any) {
     })
   }
 }
-
-const frequencyOptions = [
-  { value: 'DAILY', label: 'Daily' },
-  { value: 'WEEKLY', label: 'Weekly' }
-]
 </script>
 
 <template>
@@ -162,7 +167,7 @@ const frequencyOptions = [
               </UBadge>
               <UBadge
                 v-if="!task.isActive"
-                color="gray"
+                color="neutral"
                 variant="soft"
                 size="xs"
               >
@@ -213,7 +218,7 @@ const frequencyOptions = [
     </div>
 
     <!-- Create Task Modal -->
-    <UModal v-model="isCreating">
+    <UModal v-model:open="isCreating">
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
@@ -222,34 +227,73 @@ const frequencyOptions = [
           </div>
         </template>
 
-        <div class="space-y-4">
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormGroup label="Name (Dutch)">
-              <UInput v-model="newTask.nameNl" placeholder="Task name in Dutch" />
-            </UFormGroup>
-            <UFormGroup label="Name (French)">
-              <UInput v-model="newTask.nameFr" placeholder="Task name in French" />
-            </UFormGroup>
-          </div>
+        <template #content>
+          <div class="space-y-4">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (Dutch)</label>
+                <input
+                  v-model="newTask.nameNl"
+                  type="text"
+                  placeholder="Task name in Dutch"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                >
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (French)</label>
+                <input
+                  v-model="newTask.nameFr"
+                  type="text"
+                  placeholder="Task name in French"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                >
+              </div>
+            </div>
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormGroup label="Description (Dutch)">
-              <UTextarea v-model="newTask.descriptionNl" placeholder="Optional description" rows="2" />
-            </UFormGroup>
-            <UFormGroup label="Description (French)">
-              <UTextarea v-model="newTask.descriptionFr" placeholder="Optional description" rows="2" />
-            </UFormGroup>
-          </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (Dutch)</label>
+                <textarea
+                  v-model="newTask.descriptionNl"
+                  rows="2"
+                  placeholder="Optional description"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (French)</label>
+                <textarea
+                  v-model="newTask.descriptionFr"
+                  rows="2"
+                  placeholder="Optional description"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+            </div>
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormGroup label="Frequency">
-              <USelect v-model="newTask.frequency" :options="frequencyOptions" option-attribute="label" value-attribute="value" />
-            </UFormGroup>
-            <UFormGroup label="Sort Order">
-              <UInput v-model.number="newTask.sortOrder" type="number" min="0" />
-            </UFormGroup>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Frequency</label>
+                <select
+                  v-model="newTask.frequency"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                >
+                  <option value="DAILY">Daily</option>
+                  <option value="WEEKLY">Weekly</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sort Order</label>
+                <input
+                  v-model.number="newTask.sortOrder"
+                  type="number"
+                  min="0"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                >
+              </div>
+            </div>
           </div>
-        </div>
+        </template>
 
         <template #footer>
           <div class="flex justify-end gap-3">
@@ -257,6 +301,7 @@ const frequencyOptions = [
             <UButton
               :label="t('common.create')"
               :disabled="!newTask.nameNl.trim() || !newTask.nameFr.trim()"
+              :loading="isCreatingTask"
               @click="createTask"
             />
           </div>
@@ -265,7 +310,7 @@ const frequencyOptions = [
     </UModal>
 
     <!-- Edit Task Modal -->
-    <UModal v-model="isEditing">
+    <UModal v-model:open="isEditing">
       <UCard v-if="editingTask">
         <template #header>
           <div class="flex items-center justify-between">
@@ -274,43 +319,84 @@ const frequencyOptions = [
           </div>
         </template>
 
-        <div class="space-y-4">
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormGroup label="Name (Dutch)">
-              <UInput v-model="editingTask.nameNl" />
-            </UFormGroup>
-            <UFormGroup label="Name (French)">
-              <UInput v-model="editingTask.nameFr" />
-            </UFormGroup>
-          </div>
+        <template #content>
+          <div class="space-y-4">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (Dutch)</label>
+                <input
+                  v-model="editingTask.nameNl"
+                  type="text"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                >
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (French)</label>
+                <input
+                  v-model="editingTask.nameFr"
+                  type="text"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                >
+              </div>
+            </div>
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormGroup label="Description (Dutch)">
-              <UTextarea v-model="editingTask.descriptionNl" rows="2" />
-            </UFormGroup>
-            <UFormGroup label="Description (French)">
-              <UTextarea v-model="editingTask.descriptionFr" rows="2" />
-            </UFormGroup>
-          </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (Dutch)</label>
+                <textarea
+                  v-model="editingTask.descriptionNl"
+                  rows="2"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (French)</label>
+                <textarea
+                  v-model="editingTask.descriptionFr"
+                  rows="2"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+            </div>
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormGroup label="Frequency">
-              <USelect v-model="editingTask.frequency" :options="frequencyOptions" option-attribute="label" value-attribute="value" />
-            </UFormGroup>
-            <UFormGroup label="Sort Order">
-              <UInput v-model.number="editingTask.sortOrder" type="number" min="0" />
-            </UFormGroup>
-          </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Frequency</label>
+                <select
+                  v-model="editingTask.frequency"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                >
+                  <option value="DAILY">Daily</option>
+                  <option value="WEEKLY">Weekly</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sort Order</label>
+                <input
+                  v-model.number="editingTask.sortOrder"
+                  type="number"
+                  min="0"
+                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                >
+              </div>
+            </div>
 
-          <UFormGroup>
-            <UCheckbox v-model="editingTask.isActive" label="Active" />
-          </UFormGroup>
-        </div>
+            <div class="flex items-center gap-2">
+              <input
+                id="isActive"
+                v-model="editingTask.isActive"
+                type="checkbox"
+                class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              >
+              <label for="isActive" class="text-sm font-medium text-gray-700 dark:text-gray-300">Active</label>
+            </div>
+          </div>
+        </template>
 
         <template #footer>
           <div class="flex justify-end gap-3">
             <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
-            <UButton :label="t('common.save')" @click="saveTask" />
+            <UButton :label="t('common.save')" :loading="isSavingTask" @click="saveTask" />
           </div>
         </template>
       </UCard>
