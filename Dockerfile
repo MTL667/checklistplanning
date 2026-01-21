@@ -16,6 +16,9 @@ RUN npm ci
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# Increase Node.js memory limit for build
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -39,19 +42,12 @@ ENV PORT=3000
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nuxtjs
 
-# Copy built application and necessary files
+# Copy only what's needed for production
 COPY --from=builder /app/.output ./.output
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/package.json ./package.json
-
-# Create startup script
-RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'echo "Running database migrations..."' >> /app/start.sh && \
-    echo './node_modules/.bin/prisma migrate deploy' >> /app/start.sh && \
-    echo 'echo "Starting application..."' >> /app/start.sh && \
-    echo 'exec node .output/server/index.mjs' >> /app/start.sh && \
-    chmod +x /app/start.sh
 
 # Set ownership
 RUN chown -R nuxtjs:nodejs /app
@@ -62,5 +58,5 @@ USER nuxtjs
 # Expose port
 EXPOSE 3000
 
-# Start with migrations
-CMD ["/app/start.sh"]
+# Start command - run migrations then start app
+CMD ["sh", "-c", "node_modules/prisma/build/index.js migrate deploy && node .output/server/index.mjs"]

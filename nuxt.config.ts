@@ -12,7 +12,20 @@ export default defineNuxtConfig({
   ],
 
   devtools: {
-    enabled: true
+    enabled: false // Disable in production builds
+  },
+
+  // Build optimizations
+  vite: {
+    build: {
+      // Reduce memory usage
+      sourcemap: false
+    }
+  },
+
+  nitro: {
+    // Reduce server build time
+    sourceMap: false
   },
 
   css: ['~/assets/css/main.css'],
