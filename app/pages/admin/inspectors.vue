@@ -8,95 +8,96 @@ const { t } = useI18n()
 const toast = useToast()
 
 // Fetch data
-const { data: inspectors, refresh: refreshInspectors, status } = await useFetch('/api/inspectors')
-const { data: users } = await useFetch('/api/users')
+const { data: inspectors, refresh: refreshInspectors } = await useFetch('/api/inspectors', {
+  server: false
+})
+const { data: users } = await useFetch('/api/users', {
+  server: false
+})
 
 // Get planners only
 const planners = computed(() =>
-  (users.value || []).filter((u: any) => u.role === 'PLANNER' || u.role === 'ADMIN')
+  (users.value || []).filter(u => u.role === 'PLANNER' || u.role === 'ADMIN')
 )
 
-// Create inspector
-const showCreateModal = ref(false)
-const newName = ref('')
-const newPlannerId = ref('')
-const isSubmitting = ref(false)
+// Create inspector modal
+const isCreating = ref(false)
+const newInspectorName = ref('')
+const newInspectorPlanner = ref<string | null>(null)
+const isCreatingInspector = ref(false)
 
-async function handleCreate() {
-  if (!newName.value.trim() || isSubmitting.value) return
-  
-  isSubmitting.value = true
+async function createInspector() {
+  if (!newInspectorName.value.trim()) return
+
+  isCreatingInspector.value = true
   try {
     await $fetch('/api/inspectors', {
       method: 'POST',
       body: {
-        name: newName.value.trim(),
-        plannerId: newPlannerId.value || null
+        name: newInspectorName.value,
+        plannerId: newInspectorPlanner.value
       }
     })
-    
+
     toast.add({
-      title: 'Success',
-      description: 'Inspector created',
+      title: t('common.create'),
+      description: 'Inspector created successfully',
       color: 'success'
     })
-    
-    showCreateModal.value = false
-    newName.value = ''
-    newPlannerId.value = ''
+
+    isCreating.value = false
+    newInspectorName.value = ''
+    newInspectorPlanner.value = null
     await refreshInspectors()
   } catch (error: any) {
-    console.error('Create error:', error)
     toast.add({
-      title: 'Error',
+      title: t('errors.generic'),
       description: error.data?.message || 'Failed to create inspector',
       color: 'error'
     })
   } finally {
-    isSubmitting.value = false
+    isCreatingInspector.value = false
   }
 }
 
-// Edit inspector
-const showEditModal = ref(false)
-const editingId = ref('')
-const editingName = ref('')
-const editPlannerId = ref('')
+// Edit inspector modal
+const isEditing = ref(false)
+const editingInspector = ref<any>(null)
+const editPlannerId = ref<string | null>(null)
+const isSavingInspector = ref(false)
 
-function openEdit(inspector: any) {
-  editingId.value = inspector.id
-  editingName.value = inspector.name
-  editPlannerId.value = inspector.plannerId || ''
-  showEditModal.value = true
+function openEditModal(inspector: any) {
+  editingInspector.value = inspector
+  editPlannerId.value = inspector.plannerId
+  isEditing.value = true
 }
 
-async function handleSave() {
-  if (!editingId.value || isSubmitting.value) return
-  
-  isSubmitting.value = true
+async function saveInspector() {
+  if (!editingInspector.value) return
+
+  isSavingInspector.value = true
   try {
-    await $fetch(`/api/inspectors/${editingId.value}`, {
+    await $fetch(`/api/inspectors/${editingInspector.value.id}`, {
       method: 'PATCH',
-      body: { plannerId: editPlannerId.value || null }
+      body: { plannerId: editPlannerId.value }
     })
-    
+
     toast.add({
-      title: 'Success',
-      description: 'Inspector updated',
+      title: t('common.save'),
+      description: 'Inspector updated successfully',
       color: 'success'
     })
-    
-    showEditModal.value = false
+
+    isEditing.value = false
     await refreshInspectors()
   } catch (error: any) {
-    console.error('Save error:', error)
     toast.add({
-      title: 'Error',
-      description: error.data?.message || 'Failed to update',
+      title: t('errors.generic'),
+      description: error.data?.message || 'Failed to update inspector',
       color: 'error'
     })
   } finally {
-    isSubmitting.value = false
+    isSavingInspector.value = false
   }
 }
 </script>
@@ -114,20 +115,14 @@ async function handleSave() {
         </p>
       </div>
       <UButton
+        :label="t('common.add')"
         icon="i-lucide-plus"
-        @click="showCreateModal = true"
-      >
-        {{ t('common.add') }}
-      </UButton>
-    </div>
-
-    <!-- Loading state -->
-    <div v-if="status === 'pending'" class="py-8 text-center text-gray-500">
-      Loading...
+        @click="isCreating = true"
+      />
     </div>
 
     <!-- Inspectors Table -->
-    <UCard v-else>
+    <UCard>
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead>
@@ -155,21 +150,21 @@ async function handleSave() {
                 <span v-if="inspector.plannerName" class="text-gray-600 dark:text-gray-400">
                   {{ inspector.plannerName }}
                 </span>
-                <span v-else class="text-orange-500">
+                <UBadge v-else color="orange" variant="soft">
                   {{ t('inspector.unassigned') }}
-                </span>
+                </UBadge>
               </td>
               <td class="whitespace-nowrap px-4 py-3">
-                <span :class="inspector.isActive ? 'text-green-500' : 'text-gray-500'">
+                <UBadge :color="inspector.isActive ? 'green' : 'neutral'" variant="soft">
                   {{ inspector.isActive ? t('planner.active') : 'Inactive' }}
-                </span>
+                </UBadge>
               </td>
               <td class="whitespace-nowrap px-4 py-3 text-right">
                 <UButton
                   icon="i-lucide-edit"
                   variant="ghost"
                   size="sm"
-                  @click="openEdit(inspector)"
+                  @click="openEditModal(inspector)"
                 />
               </td>
             </tr>
@@ -183,128 +178,83 @@ async function handleSave() {
       </div>
     </UCard>
 
-    <!-- Create Modal -->
-    <UModal v-model:open="showCreateModal">
-      <template #content>
-        <UCard>
-          <template #header>
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                {{ t('common.add') }} Inspector
-              </h3>
-              <UButton
-                icon="i-lucide-x"
-                variant="ghost"
-                size="sm"
-                @click="showCreateModal = false"
-              />
-            </div>
-          </template>
+    <!-- Create Inspector Modal -->
+    <UModal v-model:open="isCreating">
+      <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ t('common.add') }} {{ t('nav.inspectors').toLowerCase() }}
+          </h3>
+          <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isCreating = false" />
+        </div>
 
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('inspector.name') }}
-              </label>
-              <input
-                v-model="newName"
-                type="text"
-                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                :placeholder="t('inspector.name')"
-              />
-            </div>
-
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('inspector.assignedTo') }}
-              </label>
-              <select
-                v-model="newPlannerId"
-                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="">{{ t('inspector.unassigned') }}</option>
-                <option v-for="planner in planners" :key="planner.id" :value="planner.id">
-                  {{ planner.name }}
-                </option>
-              </select>
-            </div>
+        <div class="px-6 py-4 space-y-4">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('inspector.name') }}</label>
+            <input
+              v-model="newInspectorName"
+              type="text"
+              :placeholder="t('inspector.name')"
+              class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            >
           </div>
 
-          <template #footer>
-            <div class="flex justify-end gap-3">
-              <UButton
-                variant="ghost"
-                @click="showCreateModal = false"
-              >
-                {{ t('common.cancel') }}
-              </UButton>
-              <UButton
-                :disabled="!newName.trim() || isSubmitting"
-                :loading="isSubmitting"
-                @click="handleCreate"
-              >
-                {{ t('common.create') }}
-              </UButton>
-            </div>
-          </template>
-        </UCard>
-      </template>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('inspector.assignedTo') }}</label>
+            <select
+              v-model="newInspectorPlanner"
+              class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            >
+              <option :value="null">{{ t('inspector.unassigned') }}</option>
+              <option v-for="planner in planners" :key="planner.id" :value="planner.id">
+                {{ planner.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+          <UButton :label="t('common.cancel')" variant="ghost" @click="isCreating = false" />
+          <UButton
+            :label="t('common.create')"
+            :disabled="!newInspectorName.trim()"
+            :loading="isCreatingInspector"
+            @click="createInspector"
+          />
+        </div>
+      </div>
     </UModal>
 
-    <!-- Edit Modal -->
-    <UModal v-model:open="showEditModal">
-      <template #content>
-        <UCard>
-          <template #header>
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                {{ t('common.edit') }}: {{ editingName }}
-              </h3>
-              <UButton
-                icon="i-lucide-x"
-                variant="ghost"
-                size="sm"
-                @click="showEditModal = false"
-              />
-            </div>
-          </template>
+    <!-- Edit Inspector Modal -->
+    <UModal v-model:open="isEditing">
+      <div v-if="editingInspector" class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ t('inspector.reassign') }}: {{ editingInspector?.name }}
+          </h3>
+          <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isEditing = false" />
+        </div>
 
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('inspector.assignedTo') }}
-              </label>
-              <select
-                v-model="editPlannerId"
-                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="">{{ t('inspector.unassigned') }}</option>
-                <option v-for="planner in planners" :key="planner.id" :value="planner.id">
-                  {{ planner.name }}
-                </option>
-              </select>
-            </div>
+        <div class="px-6 py-4 space-y-4">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('inspector.assignedTo') }}</label>
+            <select
+              v-model="editPlannerId"
+              class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            >
+              <option :value="null">{{ t('inspector.unassigned') }}</option>
+              <option v-for="planner in planners" :key="planner.id" :value="planner.id">
+                {{ planner.name }}
+              </option>
+            </select>
           </div>
+        </div>
 
-          <template #footer>
-            <div class="flex justify-end gap-3">
-              <UButton
-                variant="ghost"
-                @click="showEditModal = false"
-              >
-                {{ t('common.cancel') }}
-              </UButton>
-              <UButton
-                :disabled="isSubmitting"
-                :loading="isSubmitting"
-                @click="handleSave"
-              >
-                {{ t('common.save') }}
-              </UButton>
-            </div>
-          </template>
-        </UCard>
-      </template>
+        <div class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+          <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
+          <UButton :label="t('common.save')" :loading="isSavingInspector" @click="saveInspector" />
+        </div>
+      </div>
     </UModal>
   </div>
 </template>

@@ -8,24 +8,26 @@ const { t } = useI18n()
 const toast = useToast()
 
 // Fetch users
-const { data: users, refresh, status } = await useFetch('/api/users')
+const { data: users, refresh } = await useFetch('/api/users', {
+  server: false
+})
 
 // Edit user modal
-const showEditModal = ref(false)
+const isEditing = ref(false)
 const editingUser = ref<any>(null)
 const newRole = ref<'ADMIN' | 'PLANNER'>('PLANNER')
-const isSubmitting = ref(false)
+const isSavingRole = ref(false)
 
-function openEdit(user: any) {
+function openEditModal(user: any) {
   editingUser.value = user
   newRole.value = user.role
-  showEditModal.value = true
+  isEditing.value = true
 }
 
-async function handleSave() {
-  if (!editingUser.value || isSubmitting.value) return
+async function saveRole() {
+  if (!editingUser.value) return
 
-  isSubmitting.value = true
+  isSavingRole.value = true
   try {
     await $fetch(`/api/users/${editingUser.value.id}`, {
       method: 'PATCH',
@@ -33,22 +35,21 @@ async function handleSave() {
     })
 
     toast.add({
-      title: 'Success',
-      description: 'Role updated',
+      title: t('common.save'),
+      description: 'Role updated successfully',
       color: 'success'
     })
 
-    showEditModal.value = false
+    isEditing.value = false
     await refresh()
   } catch (error: any) {
-    console.error('Save error:', error)
     toast.add({
-      title: 'Error',
-      description: error.data?.message || 'Failed to update',
+      title: t('errors.generic'),
+      description: error.data?.message || 'Failed to update role',
       color: 'error'
     })
   } finally {
-    isSubmitting.value = false
+    isSavingRole.value = false
   }
 }
 </script>
@@ -56,22 +57,19 @@ async function handleSave() {
 <template>
   <div>
     <!-- Header -->
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-        {{ t('planner.title') }}
-      </h2>
-      <p class="text-gray-500 dark:text-gray-400">
-        {{ users?.length || 0 }} {{ t('planner.title').toLowerCase() }}
-      </p>
-    </div>
-
-    <!-- Loading state -->
-    <div v-if="status === 'pending'" class="py-8 text-center text-gray-500">
-      Loading...
+    <div class="mb-6 flex items-center justify-between">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+          {{ t('planner.title') }}
+        </h2>
+        <p class="text-gray-500 dark:text-gray-400">
+          {{ users?.length || 0 }} {{ t('planner.title').toLowerCase() }}
+        </p>
+      </div>
     </div>
 
     <!-- Users Table -->
-    <UCard v-else>
+    <UCard>
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead>
@@ -97,11 +95,7 @@ async function handleSave() {
             <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50 dark:hover:bg-gray-800">
               <td class="whitespace-nowrap px-4 py-3">
                 <div class="flex items-center gap-3">
-                  <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900">
-                    <span class="text-sm font-medium text-primary-600 dark:text-primary-400">
-                      {{ user.name?.charAt(0)?.toUpperCase() || '?' }}
-                    </span>
-                  </div>
+                  <UAvatar :alt="user.name" size="sm" />
                   <span class="font-medium text-gray-900 dark:text-white">{{ user.name }}</span>
                 </div>
               </td>
@@ -109,24 +103,22 @@ async function handleSave() {
                 {{ user.email }}
               </td>
               <td class="whitespace-nowrap px-4 py-3">
-                <span
-                  class="inline-flex rounded-full px-2 py-1 text-xs font-medium"
-                  :class="user.role === 'ADMIN' 
-                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
-                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'"
+                <UBadge
+                  :color="user.role === 'ADMIN' ? 'purple' : 'blue'"
+                  variant="soft"
                 >
                   {{ t(`roles.${user.role.toLowerCase()}`) }}
-                </span>
+                </UBadge>
               </td>
               <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-400">
-                {{ user.inspectorCount || 0 }} {{ t('nav.inspectors').toLowerCase() }}
+                {{ user.inspectorCount }} {{ t('nav.inspectors').toLowerCase() }}
               </td>
               <td class="whitespace-nowrap px-4 py-3 text-right">
                 <UButton
                   icon="i-lucide-edit"
                   variant="ghost"
                   size="sm"
-                  @click="openEdit(user)"
+                  @click="openEditModal(user)"
                 />
               </td>
             </tr>
@@ -141,57 +133,33 @@ async function handleSave() {
     </UCard>
 
     <!-- Edit Role Modal -->
-    <UModal v-model:open="showEditModal">
-      <template #content>
-        <UCard>
-          <template #header>
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                {{ t('common.edit') }}: {{ editingUser?.name }}
-              </h3>
-              <UButton
-                icon="i-lucide-x"
-                variant="ghost"
-                size="sm"
-                @click="showEditModal = false"
-              />
-            </div>
-          </template>
+    <UModal v-model:open="isEditing">
+      <div v-if="editingUser" class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ t('common.edit') }} {{ editingUser?.name }}
+          </h3>
+          <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isEditing = false" />
+        </div>
 
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('common.status') }}
-              </label>
-              <select
-                v-model="newRole"
-                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="PLANNER">{{ t('roles.planner') }}</option>
-                <option value="ADMIN">{{ t('roles.admin') }}</option>
-              </select>
-            </div>
+        <div class="px-6 py-4 space-y-4">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.status') }}</label>
+            <select
+              v-model="newRole"
+              class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="ADMIN">{{ t('roles.admin') }}</option>
+              <option value="PLANNER">{{ t('roles.planner') }}</option>
+            </select>
           </div>
+        </div>
 
-          <template #footer>
-            <div class="flex justify-end gap-3">
-              <UButton
-                variant="ghost"
-                @click="showEditModal = false"
-              >
-                {{ t('common.cancel') }}
-              </UButton>
-              <UButton
-                :disabled="isSubmitting"
-                :loading="isSubmitting"
-                @click="handleSave"
-              >
-                {{ t('common.save') }}
-              </UButton>
-            </div>
-          </template>
-        </UCard>
-      </template>
+        <div class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+          <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
+          <UButton :label="t('common.save')" :loading="isSavingRole" @click="saveRole" />
+        </div>
+      </div>
     </UModal>
   </div>
 </template>

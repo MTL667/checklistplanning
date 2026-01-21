@@ -219,187 +219,181 @@ async function toggleActive(task: any) {
 
     <!-- Create Task Modal -->
     <UModal v-model:open="isCreating">
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">Create Task</h3>
-            <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isCreating = false" />
-          </div>
-        </template>
+      <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full mx-4">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Create Task</h3>
+          <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isCreating = false" />
+        </div>
 
-        <template #content>
-          <div class="space-y-4">
-            <div class="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (Dutch)</label>
-                <input
-                  v-model="newTask.nameNl"
-                  type="text"
-                  placeholder="Task name in Dutch"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-              </div>
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (French)</label>
-                <input
-                  v-model="newTask.nameFr"
-                  type="text"
-                  placeholder="Task name in French"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-              </div>
+        <!-- Content -->
+        <div class="px-6 py-4 space-y-4">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (Dutch)</label>
+              <input
+                v-model="newTask.nameNl"
+                type="text"
+                placeholder="Task name in Dutch"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
             </div>
-
-            <div class="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (Dutch)</label>
-                <textarea
-                  v-model="newTask.descriptionNl"
-                  rows="2"
-                  placeholder="Optional description"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                />
-              </div>
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (French)</label>
-                <textarea
-                  v-model="newTask.descriptionFr"
-                  rows="2"
-                  placeholder="Optional description"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                />
-              </div>
-            </div>
-
-            <div class="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Frequency</label>
-                <select
-                  v-model="newTask.frequency"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-                  <option value="DAILY">Daily</option>
-                  <option value="WEEKLY">Weekly</option>
-                </select>
-              </div>
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sort Order</label>
-                <input
-                  v-model.number="newTask.sortOrder"
-                  type="number"
-                  min="0"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-              </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (French)</label>
+              <input
+                v-model="newTask.nameFr"
+                type="text"
+                placeholder="Task name in French"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
             </div>
           </div>
-        </template>
 
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <UButton :label="t('common.cancel')" variant="ghost" @click="isCreating = false" />
-            <UButton
-              :label="t('common.create')"
-              :disabled="!newTask.nameNl.trim() || !newTask.nameFr.trim()"
-              :loading="isCreatingTask"
-              @click="createTask"
-            />
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (Dutch)</label>
+              <textarea
+                v-model="newTask.descriptionNl"
+                rows="2"
+                placeholder="Optional description"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (French)</label>
+              <textarea
+                v-model="newTask.descriptionFr"
+                rows="2"
+                placeholder="Optional description"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
           </div>
-        </template>
-      </UCard>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Frequency</label>
+              <select
+                v-model="newTask.frequency"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="DAILY">Daily</option>
+                <option value="WEEKLY">Weekly</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sort Order</label>
+              <input
+                v-model.number="newTask.sortOrder"
+                type="number"
+                min="0"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+          <UButton :label="t('common.cancel')" variant="ghost" @click="isCreating = false" />
+          <UButton
+            :label="t('common.create')"
+            :disabled="!newTask.nameNl.trim() || !newTask.nameFr.trim()"
+            :loading="isCreatingTask"
+            @click="createTask"
+          />
+        </div>
+      </div>
     </UModal>
 
     <!-- Edit Task Modal -->
     <UModal v-model:open="isEditing">
-      <UCard v-if="editingTask">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">Edit Task</h3>
-            <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isEditing = false" />
-          </div>
-        </template>
+      <div v-if="editingTask" class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full mx-4">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Edit Task</h3>
+          <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isEditing = false" />
+        </div>
 
-        <template #content>
-          <div class="space-y-4">
-            <div class="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (Dutch)</label>
-                <input
-                  v-model="editingTask.nameNl"
-                  type="text"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-              </div>
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (French)</label>
-                <input
-                  v-model="editingTask.nameFr"
-                  type="text"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-              </div>
-            </div>
-
-            <div class="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (Dutch)</label>
-                <textarea
-                  v-model="editingTask.descriptionNl"
-                  rows="2"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                />
-              </div>
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (French)</label>
-                <textarea
-                  v-model="editingTask.descriptionFr"
-                  rows="2"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                />
-              </div>
-            </div>
-
-            <div class="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Frequency</label>
-                <select
-                  v-model="editingTask.frequency"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-                  <option value="DAILY">Daily</option>
-                  <option value="WEEKLY">Weekly</option>
-                </select>
-              </div>
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sort Order</label>
-                <input
-                  v-model.number="editingTask.sortOrder"
-                  type="number"
-                  min="0"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2">
+        <!-- Content -->
+        <div class="px-6 py-4 space-y-4">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (Dutch)</label>
               <input
-                id="isActive"
-                v-model="editingTask.isActive"
-                type="checkbox"
-                class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                v-model="editingTask.nameNl"
+                type="text"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               >
-              <label for="isActive" class="text-sm font-medium text-gray-700 dark:text-gray-300">Active</label>
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name (French)</label>
+              <input
+                v-model="editingTask.nameFr"
+                type="text"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
             </div>
           </div>
-        </template>
 
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
-            <UButton :label="t('common.save')" :loading="isSavingTask" @click="saveTask" />
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (Dutch)</label>
+              <textarea
+                v-model="editingTask.descriptionNl"
+                rows="2"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description (French)</label>
+              <textarea
+                v-model="editingTask.descriptionFr"
+                rows="2"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
           </div>
-        </template>
-      </UCard>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Frequency</label>
+              <select
+                v-model="editingTask.frequency"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="DAILY">Daily</option>
+                <option value="WEEKLY">Weekly</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sort Order</label>
+              <input
+                v-model.number="editingTask.sortOrder"
+                type="number"
+                min="0"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input
+              id="isActive"
+              v-model="editingTask.isActive"
+              type="checkbox"
+              class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            >
+            <label for="isActive" class="text-sm font-medium text-gray-700 dark:text-gray-300">Active</label>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+          <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
+          <UButton :label="t('common.save')" :loading="isSavingTask" @click="saveTask" />
+        </div>
+      </div>
     </UModal>
   </div>
 </template>

@@ -67,7 +67,6 @@ const reassignments = ref<Record<string, string>>({})
 
 function openReassignModal(absence: any) {
   selectedAbsence.value = absence
-  // Initialize with existing reassignments
   reassignments.value = {}
   absence.reassignments?.forEach((r: any) => {
     reassignments.value[r.inspectorId] = r.temporaryPlannerId
@@ -80,7 +79,6 @@ async function saveReassignments() {
 
   isSavingReassignments.value = true
   try {
-    // Save all reassignments
     const promises = Object.entries(reassignments.value)
       .filter(([_, plannerId]) => plannerId)
       .map(([inspectorId, temporaryPlannerId]) =>
@@ -215,7 +213,6 @@ const activeAbsences = computed(() =>
             </div>
           </div>
 
-          <!-- Reassignment Status -->
           <div v-if="absence.reassignments?.length" class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
             <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
               Reassignments:
@@ -291,128 +288,116 @@ const activeAbsences = computed(() =>
 
     <!-- Create Absence Modal -->
     <UModal v-model:open="isCreating">
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">Record Absence</h3>
-            <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isCreating = false" />
+      <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Record Absence</h3>
+          <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isCreating = false" />
+        </div>
+
+        <div class="px-6 py-4 space-y-4">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Planner</label>
+            <select
+              v-model="newAbsence.plannerId"
+              class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="">Select planner...</option>
+              <option v-for="planner in planners" :key="planner.id" :value="planner.id">
+                {{ planner.name }}
+              </option>
+            </select>
           </div>
-        </template>
 
-        <template #content>
-          <div class="space-y-4">
+          <div class="grid gap-4 sm:grid-cols-2">
             <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Planner</label>
-              <select
-                v-model="newAbsence.plannerId"
-                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="">Select planner...</option>
-                <option v-for="planner in planners" :key="planner.id" :value="planner.id">
-                  {{ planner.name }}
-                </option>
-              </select>
-            </div>
-
-            <div class="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
-                <input
-                  v-model="newAbsence.startDate"
-                  type="date"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-              </div>
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
-                <input
-                  v-model="newAbsence.endDate"
-                  type="date"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-              </div>
-            </div>
-
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Reason (optional)</label>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
               <input
-                v-model="newAbsence.reason"
-                type="text"
-                placeholder="Sick leave, vacation, etc."
+                v-model="newAbsence.startDate"
+                type="date"
+                class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+              <input
+                v-model="newAbsence.endDate"
+                type="date"
                 class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               >
             </div>
           </div>
-        </template>
 
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <UButton :label="t('common.cancel')" variant="ghost" @click="isCreating = false" />
-            <UButton
-              :label="t('common.create')"
-              :disabled="!newAbsence.plannerId || !newAbsence.startDate || !newAbsence.endDate"
-              :loading="isCreatingAbsence"
-              @click="createAbsence"
-            />
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Reason (optional)</label>
+            <input
+              v-model="newAbsence.reason"
+              type="text"
+              placeholder="Sick leave, vacation, etc."
+              class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            >
           </div>
-        </template>
-      </UCard>
+        </div>
+
+        <div class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+          <UButton :label="t('common.cancel')" variant="ghost" @click="isCreating = false" />
+          <UButton
+            :label="t('common.create')"
+            :disabled="!newAbsence.plannerId || !newAbsence.startDate || !newAbsence.endDate"
+            :loading="isCreatingAbsence"
+            @click="createAbsence"
+          />
+        </div>
+      </div>
     </UModal>
 
     <!-- Reassign Modal -->
     <UModal v-model:open="isReassigning">
-      <UCard v-if="selectedAbsence">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">
-              Reassign Inspectors: {{ selectedAbsence.plannerName }}
-            </h3>
-            <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isReassigning = false" />
-          </div>
-        </template>
+      <div v-if="selectedAbsence" class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-lg w-full mx-4">
+        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Reassign Inspectors: {{ selectedAbsence.plannerName }}
+          </h3>
+          <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isReassigning = false" />
+        </div>
 
-        <template #content>
-          <div class="space-y-4">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Assign each inspector to a temporary planner during the absence period.
-            </p>
+        <div class="px-6 py-4 space-y-4">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Assign each inspector to a temporary planner during the absence period.
+          </p>
 
-            <div
-              v-for="inspector in selectedAbsence.inspectors"
-              :key="inspector.id"
-              class="flex items-center gap-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
-            >
-              <div class="flex-1">
-                <p class="font-medium text-gray-900 dark:text-white">
-                  {{ inspector.name }}
-                </p>
-              </div>
-              <div class="w-48">
-                <select
-                  v-model="reassignments[inspector.id]"
-                  class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-                  <option value="">Select planner...</option>
-                  <option v-for="planner in availablePlanners" :key="planner.id" :value="planner.id">
-                    {{ planner.name }}
-                  </option>
-                </select>
-              </div>
+          <div
+            v-for="inspector in selectedAbsence.inspectors"
+            :key="inspector.id"
+            class="flex items-center gap-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+          >
+            <div class="flex-1">
+              <p class="font-medium text-gray-900 dark:text-white">
+                {{ inspector.name }}
+              </p>
             </div>
-
-            <div v-if="!selectedAbsence.inspectors?.length" class="py-4 text-center text-gray-500 dark:text-gray-400">
-              No inspectors to reassign
+            <div class="w-48">
+              <select
+                v-model="reassignments[inspector.id]"
+                class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="">Select planner...</option>
+                <option v-for="planner in availablePlanners" :key="planner.id" :value="planner.id">
+                  {{ planner.name }}
+                </option>
+              </select>
             </div>
           </div>
-        </template>
 
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <UButton :label="t('common.cancel')" variant="ghost" @click="isReassigning = false" />
-            <UButton :label="t('common.save')" :loading="isSavingReassignments" @click="saveReassignments" />
+          <div v-if="!selectedAbsence.inspectors?.length" class="py-4 text-center text-gray-500 dark:text-gray-400">
+            No inspectors to reassign
           </div>
-        </template>
-      </UCard>
+        </div>
+
+        <div class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+          <UButton :label="t('common.cancel')" variant="ghost" @click="isReassigning = false" />
+          <UButton :label="t('common.save')" :loading="isSavingReassignments" @click="saveReassignments" />
+        </div>
+      </div>
     </UModal>
   </div>
 </template>

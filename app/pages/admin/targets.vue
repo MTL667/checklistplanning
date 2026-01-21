@@ -159,52 +159,46 @@ const inspectorsWithTargets = computed(() => {
 
     <!-- Edit Target Modal -->
     <UModal v-model:open="isEditing">
-      <UCard v-if="editingInspector">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">
-              Set Target: {{ editingInspector.name }}
-            </h3>
-            <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isEditing = false" />
-          </div>
-        </template>
+      <div v-if="editingInspector" class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Set Target: {{ editingInspector.name }}
+          </h3>
+          <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isEditing = false" />
+        </div>
 
-        <template #content>
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('target.daily') }}
-              </label>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">€</span>
-                <input
-                  v-model.number="newTarget"
-                  type="number"
-                  min="0"
-                  step="1"
-                  class="block w-full rounded-md border border-gray-300 py-2 pl-8 pr-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                >
-              </div>
-            </div>
-
-            <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                {{ t('target.weekly') }}:
-                <span class="font-semibold text-gray-900 dark:text-white">
-                  {{ formatCurrency(newTarget * 5) }}
-                </span>
-              </p>
+        <div class="px-6 py-4 space-y-4">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ t('target.daily') }}
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">€</span>
+              <input
+                v-model.number="newTarget"
+                type="number"
+                min="0"
+                step="1"
+                class="block w-full rounded-md border border-gray-300 py-2 pl-8 pr-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
             </div>
           </div>
-        </template>
 
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
-            <UButton :label="t('common.save')" :loading="isSaving" @click="saveTarget" />
+          <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              {{ t('target.weekly') }}:
+              <span class="font-semibold text-gray-900 dark:text-white">
+                {{ formatCurrency(newTarget * 5) }}
+              </span>
+            </p>
           </div>
-        </template>
-      </UCard>
+        </div>
+
+        <div class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+          <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
+          <UButton :label="t('common.save')" :loading="isSaving" @click="saveTarget" />
+        </div>
+      </div>
     </UModal>
   </div>
 </template>
