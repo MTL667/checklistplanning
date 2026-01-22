@@ -36,7 +36,7 @@ export default defineNuxtConfig({
     minify: false,
     // Disable compression to speed up build
     compressPublicAssets: false,
-    // Externalize large packages
+    // Externalize xlsx to reduce bundle
     rollupConfig: {
       external: ['xlsx']
     }
