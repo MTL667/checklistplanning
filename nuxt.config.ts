@@ -33,7 +33,13 @@ export default defineNuxtConfig({
     // Reduce server build time
     sourceMap: false,
     // Reduce memory usage during build
-    minify: false
+    minify: false,
+    // Disable compression to speed up build
+    compressPublicAssets: false,
+    // Externalize large packages
+    rollupConfig: {
+      external: ['xlsx']
+    }
   },
 
   // Icon configuration - use API mode to reduce bundle size

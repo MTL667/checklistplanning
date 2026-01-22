@@ -29,7 +29,13 @@ RUN npx prisma generate
 # Build the application
 RUN npm run build
 
-# Stage 3: Production
+# Stage 3: Production dependencies only
+FROM node:20-alpine AS prod-deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --prefer-offline --no-audit
+
+# Stage 4: Production
 FROM node:20-alpine AS runner
 WORKDIR /app
 
@@ -42,8 +48,11 @@ ENV PORT=3000
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nuxtjs
 
-# Copy only what's needed for production
+# Copy build output
 COPY --from=builder --chown=nuxtjs:nodejs /app/.output ./.output
+
+# Copy production dependencies (for externalized packages like xlsx)
+COPY --from=prod-deps --chown=nuxtjs:nodejs /app/node_modules ./node_modules
 
 # Switch to non-root user
 USER nuxtjs
