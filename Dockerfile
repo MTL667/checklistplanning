@@ -10,14 +10,14 @@ COPY package.json package-lock.json ./
 COPY prisma ./prisma
 
 # Install all dependencies (including dev for build)
-RUN npm ci
+RUN npm ci --prefer-offline --no-audit
 
 # Stage 2: Build
 FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Increase Node.js memory limit for build
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
@@ -39,14 +39,11 @@ ENV HOST=0.0.0.0
 ENV PORT=3000
 
 # Create non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nuxtjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nuxtjs
 
 # Copy only what's needed for production
-COPY --from=builder /app/.output ./.output
-
-# Set ownership
-RUN chown -R nuxtjs:nodejs /app
+COPY --from=builder --chown=nuxtjs:nodejs /app/.output ./.output
 
 # Switch to non-root user
 USER nuxtjs

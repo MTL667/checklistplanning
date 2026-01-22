@@ -44,6 +44,9 @@ export default defineNuxtConfig({
       useCookie: true,
       cookieKey: 'i18n_locale',
       fallbackLocale: 'nl'
+    },
+    bundle: {
+      optimizeTranslationDirective: false
     }
   },
 
