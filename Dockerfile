@@ -26,8 +26,14 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build the application
-RUN npm run build
+# Build the application with keepalive output to prevent idle timeout
+RUN npm run build & \
+    BUILD_PID=$! && \
+    while kill -0 $BUILD_PID 2>/dev/null; do \
+        echo "[keepalive] Build still running at $(date)" && \
+        sleep 30; \
+    done && \
+    wait $BUILD_PID
 
 # Stage 3: Production dependencies only
 FROM node:20-alpine AS prod-deps
