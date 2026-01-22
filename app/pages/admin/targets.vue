@@ -158,47 +158,52 @@ const inspectorsWithTargets = computed(() => {
     </UCard>
 
     <!-- Edit Target Modal -->
-    <UModal v-model:open="isEditing">
-      <div v-if="editingInspector" class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Set Target: {{ editingInspector.name }}
-          </h3>
-          <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isEditing = false" />
-        </div>
+    <Teleport to="body">
+      <div v-if="isEditing && editingInspector" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" @click="isEditing = false" />
+        <div class="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+          <div class="mb-4 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Set Target: {{ editingInspector.name }}
+            </h3>
+            <button class="text-gray-400 hover:text-gray-600" @click="isEditing = false">
+              <span class="i-lucide-x h-5 w-5" />
+            </button>
+          </div>
 
-        <div class="px-6 py-4 space-y-4">
-          <div>
-            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ t('target.daily') }}
-            </label>
-            <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">€</span>
-              <input
-                v-model.number="newTarget"
-                type="number"
-                min="0"
-                step="1"
-                class="block w-full rounded-md border border-gray-300 py-2 pl-8 pr-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              >
+          <div class="space-y-4">
+            <div>
+              <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ t('target.daily') }}
+              </label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">€</span>
+                <input
+                  v-model.number="newTarget"
+                  type="number"
+                  min="0"
+                  step="1"
+                  class="block w-full rounded-md border border-gray-300 bg-white py-2 pl-8 pr-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+              </div>
+            </div>
+
+            <div class="rounded-lg bg-gray-100 p-4 dark:bg-gray-700">
+              <p class="text-sm text-gray-600 dark:text-gray-300">
+                {{ t('target.weekly') }}:
+                <span class="font-semibold text-gray-900 dark:text-white">
+                  {{ formatCurrency(newTarget * 5) }}
+                </span>
+              </p>
             </div>
           </div>
 
-          <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              {{ t('target.weekly') }}:
-              <span class="font-semibold text-gray-900 dark:text-white">
-                {{ formatCurrency(newTarget * 5) }}
-              </span>
-            </p>
+          <div class="mt-6 flex justify-end gap-3">
+            <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
+            <UButton :label="t('common.save')" :loading="isSaving" @click="saveTarget" />
           </div>
         </div>
-
-        <div class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
-          <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
-          <UButton :label="t('common.save')" :loading="isSaving" @click="saveTarget" />
-        </div>
       </div>
-    </UModal>
+    </Teleport>
   </div>
 </template>

@@ -133,33 +133,38 @@ async function saveRole() {
     </UCard>
 
     <!-- Edit Role Modal -->
-    <UModal v-model:open="isEditing">
-      <div v-if="editingUser" class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-            {{ t('common.edit') }} {{ editingUser?.name }}
-          </h3>
-          <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isEditing = false" />
-        </div>
+    <Teleport to="body">
+      <div v-if="isEditing && editingUser" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" @click="isEditing = false" />
+        <div class="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+          <div class="mb-4 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ t('common.edit') }} {{ editingUser?.name }}
+            </h3>
+            <button class="text-gray-400 hover:text-gray-600" @click="isEditing = false">
+              <span class="i-lucide-x h-5 w-5" />
+            </button>
+          </div>
 
-        <div class="px-6 py-4 space-y-4">
-          <div>
-            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.status') }}</label>
-            <select
-              v-model="newRole"
-              class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-            >
-              <option value="ADMIN">{{ t('roles.admin') }}</option>
-              <option value="PLANNER">{{ t('roles.planner') }}</option>
-            </select>
+          <div class="space-y-4">
+            <div>
+              <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.status') }}</label>
+              <select
+                v-model="newRole"
+                class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="ADMIN">{{ t('roles.admin') }}</option>
+                <option value="PLANNER">{{ t('roles.planner') }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
+            <UButton :label="t('common.save')" :loading="isSavingRole" @click="saveRole" />
           </div>
         </div>
-
-        <div class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
-          <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
-          <UButton :label="t('common.save')" :loading="isSavingRole" @click="saveRole" />
-        </div>
       </div>
-    </UModal>
+    </Teleport>
   </div>
 </template>
