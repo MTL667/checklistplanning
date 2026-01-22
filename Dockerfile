@@ -16,8 +16,8 @@ RUN npm ci --prefer-offline --no-audit
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Increase Node.js memory limit for build
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Increase Node.js memory limit for build (8GB)
+ENV NODE_OPTIONS="--max-old-space-size=8192"
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules

@@ -19,13 +19,29 @@ export default defineNuxtConfig({
   vite: {
     build: {
       // Reduce memory usage
-      sourcemap: false
+      sourcemap: false,
+      // Optimize chunk splitting
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
     }
   },
 
   nitro: {
     // Reduce server build time
-    sourceMap: false
+    sourceMap: false,
+    // Reduce memory usage during build
+    minify: false
+  },
+
+  // Icon configuration - use API mode to reduce bundle size
+  icon: {
+    serverBundle: 'remote',
+    clientBundle: {
+      scan: true
+    }
   },
 
   css: ['~/assets/css/main.css'],
