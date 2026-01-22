@@ -20,12 +20,6 @@ const planners = computed(() =>
   (users.value || []).filter(u => u.role === 'PLANNER' || u.role === 'ADMIN')
 )
 
-// Planner options for select
-const plannerOptions = computed(() => [
-  { id: null, label: t('inspector.unassigned') },
-  ...planners.value.map(p => ({ id: p.id, label: p.name }))
-])
-
 // Create inspector modal
 const isCreating = ref(false)
 const newInspectorName = ref('')
@@ -197,22 +191,23 @@ async function saveInspector() {
         </template>
 
         <div class="space-y-4">
-          <UFormField :label="t('inspector.name')">
-            <UInput
-              v-model="newInspectorName"
-              :placeholder="t('inspector.name')"
-              class="w-full"
-            />
-          </UFormField>
+          <div>
+            <label class="mb-2 block text-sm font-medium">{{ t('inspector.name') }}</label>
+            <UInput v-model="newInspectorName" :placeholder="t('inspector.name')" />
+          </div>
 
-          <UFormField :label="t('inspector.assignedTo')">
-            <USelectMenu
+          <div>
+            <label class="mb-2 block text-sm font-medium">{{ t('inspector.assignedTo') }}</label>
+            <select
               v-model="newInspectorPlanner"
-              :items="plannerOptions"
-              placeholder="Selecteer planner"
-              class="w-full"
-            />
-          </UFormField>
+              class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            >
+              <option :value="null">{{ t('inspector.unassigned') }}</option>
+              <option v-for="planner in planners" :key="planner.id" :value="planner.id">
+                {{ planner.name }}
+              </option>
+            </select>
+          </div>
         </div>
 
         <template #footer>
@@ -242,14 +237,18 @@ async function saveInspector() {
         </template>
 
         <div v-if="editingInspector" class="space-y-4">
-          <UFormField :label="t('inspector.assignedTo')">
-            <USelectMenu
+          <div>
+            <label class="mb-2 block text-sm font-medium">{{ t('inspector.assignedTo') }}</label>
+            <select
               v-model="editPlannerId"
-              :items="plannerOptions"
-              placeholder="Selecteer planner"
-              class="w-full"
-            />
-          </UFormField>
+              class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            >
+              <option :value="null">{{ t('inspector.unassigned') }}</option>
+              <option v-for="planner in planners" :key="planner.id" :value="planner.id">
+                {{ planner.name }}
+              </option>
+            </select>
+          </div>
         </div>
 
         <template #footer>
