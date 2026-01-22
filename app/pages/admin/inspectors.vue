@@ -20,6 +20,12 @@ const planners = computed(() =>
   (users.value || []).filter(u => u.role === 'PLANNER' || u.role === 'ADMIN')
 )
 
+// Planner options for select
+const plannerOptions = computed(() => [
+  { id: null, label: t('inspector.unassigned') },
+  ...planners.value.map(p => ({ id: p.id, label: p.name }))
+])
+
 // Create inspector modal
 const isCreating = ref(false)
 const newInspectorName = ref('')
@@ -179,72 +185,80 @@ async function saveInspector() {
     </UCard>
 
     <!-- Create Inspector Modal -->
-    <UModal v-model:open="isCreating" :ui="{ width: 'sm:max-w-md' }">
-      <template #header>
-        <h3 class="text-lg font-semibold">
-          {{ t('common.add') }} {{ t('nav.inspectors').toLowerCase() }}
-        </h3>
-      </template>
+    <UModal v-model:open="isCreating">
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">
+              {{ t('common.add') }} {{ t('nav.inspectors').toLowerCase() }}
+            </h3>
+            <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isCreating = false" />
+          </div>
+        </template>
 
-      <div class="space-y-4">
-        <div>
-          <label class="mb-1 block text-sm font-medium">{{ t('inspector.name') }}</label>
-          <UInput
-            v-model="newInspectorName"
-            :placeholder="t('inspector.name')"
-          />
+        <div class="space-y-4">
+          <UFormField :label="t('inspector.name')">
+            <UInput
+              v-model="newInspectorName"
+              :placeholder="t('inspector.name')"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField :label="t('inspector.assignedTo')">
+            <USelectMenu
+              v-model="newInspectorPlanner"
+              :items="plannerOptions"
+              placeholder="Selecteer planner"
+              class="w-full"
+            />
+          </UFormField>
         </div>
 
-        <div>
-          <label class="mb-1 block text-sm font-medium">{{ t('inspector.assignedTo') }}</label>
-          <USelect
-            v-model="newInspectorPlanner"
-            :items="[{ value: null, label: t('inspector.unassigned') }, ...planners.map(p => ({ value: p.id, label: p.name }))]"
-            value-key="value"
-            label-key="label"
-          />
-        </div>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <UButton :label="t('common.cancel')" variant="ghost" @click="isCreating = false" />
-          <UButton
-            :label="t('common.create')"
-            :disabled="!newInspectorName.trim()"
-            :loading="isCreatingInspector"
-            @click="createInspector"
-          />
-        </div>
-      </template>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton :label="t('common.cancel')" variant="ghost" @click="isCreating = false" />
+            <UButton
+              :label="t('common.create')"
+              :disabled="!newInspectorName.trim()"
+              :loading="isCreatingInspector"
+              @click="createInspector"
+            />
+          </div>
+        </template>
+      </UCard>
     </UModal>
 
     <!-- Edit Inspector Modal -->
-    <UModal v-model:open="isEditing" :ui="{ width: 'sm:max-w-md' }">
-      <template #header>
-        <h3 class="text-lg font-semibold">
-          {{ t('inspector.reassign') }}: {{ editingInspector?.name }}
-        </h3>
-      </template>
+    <UModal v-model:open="isEditing">
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">
+              {{ t('inspector.reassign') }}: {{ editingInspector?.name }}
+            </h3>
+            <UButton icon="i-lucide-x" variant="ghost" size="sm" @click="isEditing = false" />
+          </div>
+        </template>
 
-      <div v-if="editingInspector" class="space-y-4">
-        <div>
-          <label class="mb-1 block text-sm font-medium">{{ t('inspector.assignedTo') }}</label>
-          <USelect
-            v-model="editPlannerId"
-            :items="[{ value: null, label: t('inspector.unassigned') }, ...planners.map(p => ({ value: p.id, label: p.name }))]"
-            value-key="value"
-            label-key="label"
-          />
+        <div v-if="editingInspector" class="space-y-4">
+          <UFormField :label="t('inspector.assignedTo')">
+            <USelectMenu
+              v-model="editPlannerId"
+              :items="plannerOptions"
+              placeholder="Selecteer planner"
+              class="w-full"
+            />
+          </UFormField>
         </div>
-      </div>
 
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
-          <UButton :label="t('common.save')" :loading="isSavingInspector" @click="saveInspector" />
-        </div>
-      </template>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
+            <UButton :label="t('common.save')" :loading="isSavingInspector" @click="saveInspector" />
+          </div>
+        </template>
+      </UCard>
     </UModal>
   </div>
 </template>
