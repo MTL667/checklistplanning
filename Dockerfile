@@ -39,7 +39,8 @@ RUN npm run build & \
 FROM node:20-alpine AS prod-deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --prefer-offline --no-audit
+# Skip postinstall scripts - we only need runtime dependencies
+RUN npm ci --omit=dev --prefer-offline --no-audit --ignore-scripts
 
 # Stage 4: Production
 FROM node:20-alpine AS runner
