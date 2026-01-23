@@ -13,12 +13,10 @@ async function stopImpersonating() {
     await $fetch('/api/admin/stop-impersonate', {
       method: 'POST'
     })
-    await refreshSession()
-    // Redirect to admin dashboard
-    await navigateTo('/admin')
+    // Force full page reload to clear all cached session state
+    window.location.href = '/admin'
   } catch (error) {
     console.error('Failed to stop impersonating:', error)
-  } finally {
     isStoppingImpersonation.value = false
   }
 }
