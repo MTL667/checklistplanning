@@ -202,6 +202,27 @@ function getStatusClass(inspectorId: string, date: string): string {
   return ''
 }
 
+// Get target-based class (green if met, red if below)
+function getTargetClass(inspectorId: string, date: string, defaultTarget: number): string {
+  const value = localEntries.value[inspectorId]?.[date]
+  
+  // Skip if it's a status code or no value
+  if (typeof value !== 'number' || value === 0) {
+    return ''
+  }
+  
+  const target = defaultTarget || 0
+  if (target === 0) {
+    return '' // No target set, no coloring
+  }
+  
+  if (value >= target) {
+    return 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30'
+  } else {
+    return 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/30'
+  }
+}
+
 // Calculate row total (only numeric values)
 function getRowTotal(inspectorId: string): number {
   const entries = localEntries.value[inspectorId] || {}
@@ -528,9 +549,7 @@ function cancelReorder() {
                   class="w-full rounded border border-gray-200 bg-white px-2 py-1.5 text-center text-sm font-medium uppercase focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:disabled:bg-gray-900"
                   :class="[
                     getStatusClass(inspector.id, day.date),
-                    {
-                      'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30': !isStatusCode(getEntryValue(inspector.id, day.date)) && typeof getEntryValue(inspector.id, day.date) === 'number' && getEntryValue(inspector.id, day.date) >= (inspector.defaultTarget || 0) && getEntryValue(inspector.id, day.date) > 0
-                    }
+                    getTargetClass(inspector.id, day.date, inspector.defaultTarget)
                   ]"
                   placeholder="0"
                   @input="(e) => handleInputChange(inspector.id, day.date, (e.target as HTMLInputElement).value)"
