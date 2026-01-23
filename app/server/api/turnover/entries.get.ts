@@ -63,16 +63,32 @@ export default defineEventHandler(async (event) => {
     }
   })
 
+  // Map status codes to display values
+  const STATUS_CODE_DISPLAY: Record<string, string> = {
+    SICK: 'Z',
+    TRAINING_GIVE: 'OG',
+    TRAINING_TAKE: 'OV',
+    LEAVE: 'V'
+  }
+
   // Transform data for frontend
   return inspectors.map(inspector => {
     // Get default target
     const defaultTarget = inspector.targets.find(t => t.isDefault)
 
-    // Create entries map by date
-    const entriesByDate: Record<string, number> = {}
+    // Create entries map by date (amount or status code display)
+    const entriesByDate: Record<string, number | string> = {}
+    const statusByDate: Record<string, string | null> = {}
+
     inspector.turnoverEntries.forEach(entry => {
       const dateKey = entry.date.toISOString().split('T')[0]
-      entriesByDate[dateKey] = Number(entry.amount)
+      if (entry.statusCode) {
+        entriesByDate[dateKey] = STATUS_CODE_DISPLAY[entry.statusCode] || entry.statusCode
+        statusByDate[dateKey] = entry.statusCode
+      } else {
+        entriesByDate[dateKey] = Number(entry.amount)
+        statusByDate[dateKey] = null
+      }
     })
 
     // Create targets map by date
@@ -89,6 +105,7 @@ export default defineEventHandler(async (event) => {
       name: inspector.name,
       defaultTarget: defaultTarget ? Number(defaultTarget.amount) : 0,
       entries: entriesByDate,
+      statuses: statusByDate,
       targets: targetsByDate
     }
   })

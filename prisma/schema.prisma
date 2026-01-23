@@ -31,6 +31,13 @@ enum TaskFrequency {
   WEEKLY
 }
 
+enum InspectorStatus {
+  SICK        // Z = Ziek
+  TRAINING_GIVE  // OG = Opleiding Geven
+  TRAINING_TAKE  // OV = Opleiding Volgen
+  LEAVE       // V = Verlof/Vakantie
+}
+
 // User model - represents authenticated users
 model User {
   id        String   @id @default(uuid())
@@ -74,13 +81,14 @@ model Inspector {
 
 // TurnoverEntry model - daily turnover recorded per inspector
 model TurnoverEntry {
-  id          String   @id @default(uuid())
+  id          String           @id @default(uuid())
   inspectorId String
   plannerId   String
-  date        DateTime @db.Date
-  amount      Decimal  @db.Decimal(10, 2)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  date        DateTime         @db.Date
+  amount      Decimal          @db.Decimal(10, 2)
+  statusCode  InspectorStatus? // Optional status code (Z, OG, OV, V)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   // Relations
   inspector Inspector @relation(fields: [inspectorId], references: [id])

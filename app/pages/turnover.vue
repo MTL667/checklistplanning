@@ -98,13 +98,22 @@ const { data: summaryData, refresh: refreshSummary } = await useFetch('/api/turn
   watch: [startDateStr]
 })
 
-// Local entry state for editing
-const localEntries = ref<Record<string, Record<string, number>>>({})
+// Valid status codes
+const STATUS_CODES = ['Z', 'OG', 'OV', 'V']
+const STATUS_CODE_COLORS: Record<string, string> = {
+  Z: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
+  OG: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+  OV: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300',
+  V: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
+}
+
+// Local entry state for editing (can be number or string)
+const localEntries = ref<Record<string, Record<string, number | string>>>({})
 
 // Initialize local entries from server data
 watch(inspectorsData, (data) => {
   if (data) {
-    const entries: Record<string, Record<string, number>> = {}
+    const entries: Record<string, Record<string, number | string>> = {}
     data.forEach(inspector => {
       entries[inspector.id] = { ...inspector.entries }
     })
@@ -115,21 +124,21 @@ watch(inspectorsData, (data) => {
 // Save entry with debounce
 const savingEntries = ref<Record<string, boolean>>({})
 
-async function saveEntry(inspectorId: string, date: string, amount: number) {
+async function saveEntry(inspectorId: string, date: string, value: number | string) {
   const key = `${inspectorId}-${date}`
   savingEntries.value[key] = true
 
   try {
     await $fetch('/api/turnover/entries', {
       method: 'POST',
-      body: { inspectorId, date, amount }
+      body: { inspectorId, date, value }
     })
 
     // Update local state
     if (!localEntries.value[inspectorId]) {
       localEntries.value[inspectorId] = {}
     }
-    localEntries.value[inspectorId][date] = amount
+    localEntries.value[inspectorId][date] = value
 
     // Refresh summary
     await refreshSummary()
@@ -148,13 +157,21 @@ async function saveEntry(inspectorId: string, date: string, amount: number) {
 const debounceTimers: Record<string, NodeJS.Timeout> = {}
 
 function handleInputChange(inspectorId: string, date: string, value: string) {
-  const amount = parseFloat(value) || 0
+  const trimmedValue = value.trim().toUpperCase()
+
+  // Check if it's a status code
+  let parsedValue: number | string
+  if (STATUS_CODES.includes(trimmedValue)) {
+    parsedValue = trimmedValue
+  } else {
+    parsedValue = parseFloat(value) || 0
+  }
 
   // Update local state immediately
   if (!localEntries.value[inspectorId]) {
     localEntries.value[inspectorId] = {}
   }
-  localEntries.value[inspectorId][date] = amount
+  localEntries.value[inspectorId][date] = parsedValue
 
   // Debounce save
   const key = `${inspectorId}-${date}`
@@ -162,26 +179,48 @@ function handleInputChange(inspectorId: string, date: string, value: string) {
     clearTimeout(debounceTimers[key])
   }
   debounceTimers[key] = setTimeout(() => {
-    saveEntry(inspectorId, date, amount)
+    saveEntry(inspectorId, date, parsedValue)
   }, 500)
 }
 
-// Get entry value
-function getEntryValue(inspectorId: string, date: string): number {
-  return localEntries.value[inspectorId]?.[date] || 0
+// Get entry value (for display in input)
+function getEntryValue(inspectorId: string, date: string): number | string {
+  return localEntries.value[inspectorId]?.[date] ?? ''
 }
 
-// Calculate row total
+// Check if entry is a status code
+function isStatusCode(value: number | string | undefined): boolean {
+  return typeof value === 'string' && STATUS_CODES.includes(value)
+}
+
+// Get status code class
+function getStatusClass(inspectorId: string, date: string): string {
+  const value = localEntries.value[inspectorId]?.[date]
+  if (typeof value === 'string' && STATUS_CODE_COLORS[value]) {
+    return STATUS_CODE_COLORS[value]
+  }
+  return ''
+}
+
+// Calculate row total (only numeric values)
 function getRowTotal(inspectorId: string): number {
   const entries = localEntries.value[inspectorId] || {}
-  return Object.values(entries).reduce((sum, val) => sum + (val || 0), 0)
+  return Object.values(entries).reduce((sum, val) => {
+    if (typeof val === 'number') {
+      return sum + val
+    }
+    return sum
+  }, 0)
 }
 
-// Calculate column total
+// Calculate column total (only numeric values)
 function getColumnTotal(date: string): number {
   let total = 0
   Object.values(localEntries.value).forEach(entries => {
-    total += entries[date] || 0
+    const val = entries[date]
+    if (typeof val === 'number') {
+      total += val
+    }
   })
   return total
 }
@@ -415,6 +454,16 @@ function cancelReorder() {
       </UCard>
     </div>
 
+    <!-- Status Code Legend -->
+    <div class="mb-4 flex flex-wrap items-center gap-4 text-sm">
+      <span class="text-gray-500 dark:text-gray-400">{{ t('turnover.statusCodes') }}:</span>
+      <span v-for="code in STATUS_CODES" :key="code" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5" :class="STATUS_CODE_COLORS[code]">
+        <span class="font-bold">{{ code }}</span>
+        <span class="text-xs">=</span>
+        <span>{{ t(`status.${code}`) }}</span>
+      </span>
+    </div>
+
     <!-- Turnover Grid -->
     <UCard>
       <div class="overflow-x-auto">
@@ -473,16 +522,17 @@ function cancelReorder() {
                 class="px-1 py-1"
               >
                 <input
-                  type="number"
-                  :value="getEntryValue(inspector.id, day.date) || ''"
-                  :disabled="day.isWeekend"
-                  class="w-full rounded border border-gray-200 bg-white px-2 py-1.5 text-center text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:disabled:bg-gray-900"
-                  :class="{
-                    'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30': getEntryValue(inspector.id, day.date) >= (inspector.defaultTarget || 0) && getEntryValue(inspector.id, day.date) > 0
-                  }"
+                  type="text"
+                  :value="getEntryValue(inspector.id, day.date)"
+                  :disabled="day.isWeekend || isReorderMode"
+                  class="w-full rounded border border-gray-200 bg-white px-2 py-1.5 text-center text-sm font-medium uppercase focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:disabled:bg-gray-900"
+                  :class="[
+                    getStatusClass(inspector.id, day.date),
+                    {
+                      'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30': !isStatusCode(getEntryValue(inspector.id, day.date)) && typeof getEntryValue(inspector.id, day.date) === 'number' && getEntryValue(inspector.id, day.date) >= (inspector.defaultTarget || 0) && getEntryValue(inspector.id, day.date) > 0
+                    }
+                  ]"
                   placeholder="0"
-                  min="0"
-                  step="1"
                   @input="(e) => handleInputChange(inspector.id, day.date, (e.target as HTMLInputElement).value)"
                 />
               </td>

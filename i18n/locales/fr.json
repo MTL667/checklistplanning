@@ -72,7 +72,15 @@
     "aboveTarget": "Au-dessus de l'objectif",
     "enterAmount": "Entrez le montant",
     "saved": "Enregistré",
-    "saving": "Enregistrement..."
+    "saving": "Enregistrement...",
+    "statusCodes": "Codes de statut",
+    "statusHelp": "Vous pouvez également saisir des codes de statut au lieu d'un chiffre d'affaires :"
+  },
+  "status": {
+    "Z": "Malade",
+    "OG": "Formation donnée",
+    "OV": "Formation suivie",
+    "V": "Congé/Vacances"
   },
   "checklist": {
     "title": "Liste de contrôle quotidienne",

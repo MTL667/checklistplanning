@@ -72,7 +72,15 @@
     "aboveTarget": "Boven doel",
     "enterAmount": "Voer bedrag in",
     "saved": "Opgeslagen",
-    "saving": "Opslaan..."
+    "saving": "Opslaan...",
+    "statusCodes": "Statuscodes",
+    "statusHelp": "Je kunt ook statuscodes invoeren in plaats van een omzetwaarde:"
+  },
+  "status": {
+    "Z": "Ziek",
+    "OG": "Opleiding Geven",
+    "OV": "Opleiding Volgen",
+    "V": "Verlof/Vakantie"
   },
   "checklist": {
     "title": "Dagelijkse Checklist",
