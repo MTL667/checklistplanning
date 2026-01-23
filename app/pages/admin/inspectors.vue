@@ -63,23 +63,28 @@ async function createInspector() {
 // Edit inspector modal
 const isEditing = ref(false)
 const editingInspector = ref<any>(null)
+const editName = ref('')
 const editPlannerId = ref<string | null>(null)
 const isSavingInspector = ref(false)
 
 function openEditModal(inspector: any) {
   editingInspector.value = inspector
+  editName.value = inspector.name
   editPlannerId.value = inspector.plannerId
   isEditing.value = true
 }
 
 async function saveInspector() {
-  if (!editingInspector.value) return
+  if (!editingInspector.value || !editName.value.trim()) return
 
   isSavingInspector.value = true
   try {
     await $fetch(`/api/inspectors/${editingInspector.value.id}`, {
       method: 'PATCH',
-      body: { plannerId: editPlannerId.value }
+      body: {
+        name: editName.value.trim(),
+        plannerId: editPlannerId.value
+      }
     })
 
     toast.add({
@@ -237,7 +242,7 @@ async function saveInspector() {
         <div class="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
           <div class="mb-4 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ t('inspector.reassign') }}: {{ editingInspector?.name }}
+              {{ t('common.edit') }} {{ t('nav.inspectors').toLowerCase() }}
             </h3>
             <button class="text-gray-400 hover:text-gray-600" @click="isEditing = false">
               <span class="i-lucide-x h-5 w-5" />
@@ -245,6 +250,16 @@ async function saveInspector() {
           </div>
 
           <div v-if="editingInspector" class="space-y-4">
+            <div>
+              <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('inspector.name') }}</label>
+              <input
+                v-model="editName"
+                type="text"
+                :placeholder="t('inspector.name')"
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              >
+            </div>
+
             <div>
               <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('inspector.assignedTo') }}</label>
               <select
@@ -261,7 +276,7 @@ async function saveInspector() {
 
           <div class="mt-6 flex justify-end gap-3">
             <UButton :label="t('common.cancel')" variant="ghost" @click="isEditing = false" />
-            <UButton :label="t('common.save')" :loading="isSavingInspector" @click="saveInspector" />
+            <UButton :label="t('common.save')" :disabled="!editName.trim()" :loading="isSavingInspector" @click="saveInspector" />
           </div>
         </div>
       </div>
