@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx'
 import prisma from '../../utils/prisma'
 
 /**
@@ -7,6 +6,9 @@ import prisma from '../../utils/prisma'
  * Query params: ?startDate=YYYY-MM-DD&format=xlsx
  */
 export default defineEventHandler(async (event) => {
+  // Dynamic import to prevent bundling at build time
+  const XLSX = await import('xlsx')
+  
   const session = await requireUserSession(event)
   const query = getQuery(event)
 
