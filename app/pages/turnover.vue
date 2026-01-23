@@ -7,6 +7,11 @@ definePageMeta({
 const { t } = useI18n()
 const toast = useToast()
 
+// Reorder mode
+const isReorderMode = ref(false)
+const draggedIndex = ref<number | null>(null)
+const dragOverIndex = ref<number | null>(null)
+
 // Current week state
 const currentWeekStart = ref(getMonday(new Date()))
 
@@ -190,6 +195,89 @@ function formatCurrency(amount: number): string {
     maximumFractionDigits: 0
   }).format(amount)
 }
+
+// Reorder functionality
+const reorderedInspectors = ref<any[]>([])
+
+watch(inspectorsData, (data) => {
+  if (data) {
+    reorderedInspectors.value = [...data]
+  }
+}, { immediate: true })
+
+const displayedInspectors = computed(() => {
+  return isReorderMode.value ? reorderedInspectors.value : inspectorsData.value
+})
+
+function handleDragStart(index: number) {
+  draggedIndex.value = index
+}
+
+function handleDragOver(event: DragEvent, index: number) {
+  event.preventDefault()
+  dragOverIndex.value = index
+}
+
+function handleDragLeave() {
+  dragOverIndex.value = null
+}
+
+function handleDrop(index: number) {
+  if (draggedIndex.value === null || draggedIndex.value === index) {
+    draggedIndex.value = null
+    dragOverIndex.value = null
+    return
+  }
+
+  // Reorder the array
+  const items = [...reorderedInspectors.value]
+  const [draggedItem] = items.splice(draggedIndex.value, 1)
+  items.splice(index, 0, draggedItem)
+  reorderedInspectors.value = items
+
+  draggedIndex.value = null
+  dragOverIndex.value = null
+}
+
+function handleDragEnd() {
+  draggedIndex.value = null
+  dragOverIndex.value = null
+}
+
+const isSavingOrder = ref(false)
+
+async function saveOrder() {
+  isSavingOrder.value = true
+  try {
+    const inspectorIds = reorderedInspectors.value.map(i => i.id)
+    await $fetch('/api/inspectors/reorder', {
+      method: 'POST',
+      body: { inspectorIds }
+    })
+
+    toast.add({
+      title: t('common.save'),
+      description: 'Volgorde opgeslagen',
+      color: 'success'
+    })
+
+    isReorderMode.value = false
+    await refreshEntries()
+  } catch (error: any) {
+    toast.add({
+      title: t('errors.generic'),
+      description: error.data?.message || 'Failed to save order',
+      color: 'error'
+    })
+  } finally {
+    isSavingOrder.value = false
+  }
+}
+
+function cancelReorder() {
+  reorderedInspectors.value = [...(inspectorsData.value || [])]
+  isReorderMode.value = false
+}
 </script>
 
 <template>
@@ -208,23 +296,55 @@ function formatCurrency(amount: number): string {
       <!-- Week Navigation -->
       <div class="flex items-center gap-2">
         <UButton
-          icon="i-lucide-chevron-left"
+          v-if="!isReorderMode"
+          icon="i-lucide-grip-vertical"
           variant="ghost"
           size="sm"
-          @click="previousWeek"
+          :title="t('inspector.reorder')"
+          @click="isReorderMode = true"
         />
-        <UButton
-          :label="weekRangeLabel"
-          variant="outline"
-          size="sm"
-          @click="goToThisWeek"
-        />
-        <UButton
-          icon="i-lucide-chevron-right"
-          variant="ghost"
-          size="sm"
-          @click="nextWeek"
-        />
+        <template v-if="isReorderMode">
+          <UButton
+            :label="t('common.cancel')"
+            variant="ghost"
+            size="sm"
+            @click="cancelReorder"
+          />
+          <UButton
+            :label="t('common.save')"
+            size="sm"
+            :loading="isSavingOrder"
+            @click="saveOrder"
+          />
+        </template>
+        <template v-else>
+          <UButton
+            icon="i-lucide-chevron-left"
+            variant="ghost"
+            size="sm"
+            @click="previousWeek"
+          />
+          <UButton
+            :label="weekRangeLabel"
+            variant="outline"
+            size="sm"
+            @click="goToThisWeek"
+          />
+          <UButton
+            icon="i-lucide-chevron-right"
+            variant="ghost"
+            size="sm"
+            @click="nextWeek"
+          />
+        </template>
+      </div>
+    </div>
+
+    <!-- Reorder Mode Banner -->
+    <div v-if="isReorderMode" class="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+      <div class="flex items-center gap-2">
+        <UIcon name="i-lucide-info" class="h-4 w-4" />
+        <span>{{ t('inspector.reorderHint') }}</span>
       </div>
     </div>
 
@@ -320,14 +440,32 @@ function formatCurrency(amount: number): string {
           </thead>
           <tbody>
             <tr
-              v-for="inspector in inspectorsData"
+              v-for="(inspector, index) in displayedInspectors"
               :key="inspector.id"
-              class="border-b border-gray-100 dark:border-gray-800"
+              class="border-b border-gray-100 dark:border-gray-800 transition-all"
+              :class="{
+                'cursor-grab': isReorderMode && draggedIndex === null,
+                'cursor-grabbing opacity-50': draggedIndex === index,
+                'bg-blue-50 dark:bg-blue-900/20': dragOverIndex === index && draggedIndex !== index
+              }"
+              :draggable="isReorderMode"
+              @dragstart="handleDragStart(index)"
+              @dragover="(e) => handleDragOver(e, index)"
+              @dragleave="handleDragLeave"
+              @drop="handleDrop(index)"
+              @dragend="handleDragEnd"
             >
               <td class="px-4 py-2">
-                <span class="font-medium text-gray-900 dark:text-white">
-                  {{ inspector.name }}
-                </span>
+                <div class="flex items-center gap-2">
+                  <UIcon
+                    v-if="isReorderMode"
+                    name="i-lucide-grip-vertical"
+                    class="h-4 w-4 text-gray-400"
+                  />
+                  <span class="font-medium text-gray-900 dark:text-white">
+                    {{ inspector.name }}
+                  </span>
+                </div>
               </td>
               <td
                 v-for="day in weekDays"

@@ -90,7 +90,9 @@
     "unassigned": "Niet toegewezen",
     "reassign": "Opnieuw toewijzen",
     "bulkAssign": "Bulk toewijzen",
-    "history": "Toewijzingsgeschiedenis"
+    "history": "Toewijzingsgeschiedenis",
+    "reorder": "Volgorde aanpassen",
+    "reorderHint": "Sleep inspecteurs om de volgorde aan te passen. Klik op Opslaan als je klaar bent."
   },
   "planner": {
     "title": "Planners",
@@ -146,5 +148,9 @@
     "serverError": "Serverfout",
     "networkError": "Netwerkfout",
     "tryAgain": "Probeer het opnieuw"
+  },
+  "target": {
+    "daily": "Dagelijks doel",
+    "weekly": "Wekelijks doel"
   }
 }

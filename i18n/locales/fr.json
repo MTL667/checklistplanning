@@ -90,7 +90,9 @@
     "unassigned": "Non assigné",
     "reassign": "Réassigner",
     "bulkAssign": "Assignation en masse",
-    "history": "Historique des assignations"
+    "history": "Historique des assignations",
+    "reorder": "Réorganiser",
+    "reorderHint": "Faites glisser les inspecteurs pour modifier l'ordre. Cliquez sur Enregistrer quand vous avez terminé."
   },
   "planner": {
     "title": "Planificateurs",
@@ -146,5 +148,9 @@
     "serverError": "Erreur serveur",
     "networkError": "Erreur réseau",
     "tryAgain": "Réessayer"
+  },
+  "target": {
+    "daily": "Objectif quotidien",
+    "weekly": "Objectif hebdomadaire"
   }
 }

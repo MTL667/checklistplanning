@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
       ...inspectorWhere,
       isActive: true
     },
-    orderBy: { name: 'asc' },
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     include: {
       turnoverEntries: {
         where: {
