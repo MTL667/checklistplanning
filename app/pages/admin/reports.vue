@@ -40,7 +40,7 @@ const { data: report, pending, refresh } = await useFetch('/api/reports/weekly',
 })
 
 // Export
-function exportExcel() {
+function exportCSV() {
   window.open(`/api/reports/export?startDate=${selectedWeekStart.value}`, '_blank')
 }
 
@@ -88,9 +88,9 @@ function getPerformanceBg(perf: number): string {
       <div class="flex items-center gap-2">
         <UButton
           icon="i-lucide-download"
-          label="Export Excel"
+          label="Export CSV"
           variant="outline"
-          @click="exportExcel"
+          @click="exportCSV"
         />
         <UButton
           icon="i-lucide-refresh-cw"

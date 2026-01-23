@@ -27,7 +27,6 @@
     "nuxt": "^3.15.0",
     "nuxt-auth-utils": "^0.5.27",
     "pinia": "^2.3.0",
-    "xlsx": "^0.18.5",
     "zod": "^3.24.0"
   },
   "devDependencies": {

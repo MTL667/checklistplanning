@@ -35,13 +35,7 @@ RUN npm run build & \
     done && \
     wait $BUILD_PID
 
-# Stage 3: Production dependencies (for dynamically imported packages)
-FROM node:20-alpine AS prod-deps
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --prefer-offline --no-audit --ignore-scripts
-
-# Stage 4: Production
+# Stage 3: Production
 FROM node:20-alpine AS runner
 WORKDIR /app
 
@@ -54,17 +48,8 @@ ENV PORT=3000
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nuxtjs
 
-# Copy build output
+# Copy build output (everything is bundled, no node_modules needed)
 COPY --from=builder --chown=nuxtjs:nodejs /app/.output ./.output
-
-# Copy only xlsx for dynamic import (much smaller than full node_modules)
-COPY --from=prod-deps --chown=nuxtjs:nodejs /app/node_modules/xlsx ./node_modules/xlsx
-COPY --from=prod-deps --chown=nuxtjs:nodejs /app/node_modules/ssf ./node_modules/ssf
-COPY --from=prod-deps --chown=nuxtjs:nodejs /app/node_modules/frac ./node_modules/frac
-COPY --from=prod-deps --chown=nuxtjs:nodejs /app/node_modules/cfb ./node_modules/cfb
-COPY --from=prod-deps --chown=nuxtjs:nodejs /app/node_modules/adler-32 ./node_modules/adler-32
-COPY --from=prod-deps --chown=nuxtjs:nodejs /app/node_modules/crc-32 ./node_modules/crc-32
-COPY --from=prod-deps --chown=nuxtjs:nodejs /app/node_modules/codepage ./node_modules/codepage
 
 # Switch to non-root user
 USER nuxtjs

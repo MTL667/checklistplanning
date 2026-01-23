@@ -2,13 +2,10 @@ import prisma from '../../utils/prisma'
 
 /**
  * GET /api/reports/export
- * Exports weekly report as Excel file
- * Query params: ?startDate=YYYY-MM-DD&format=xlsx
+ * Exports weekly report as CSV file
+ * Query params: ?startDate=YYYY-MM-DD
  */
 export default defineEventHandler(async (event) => {
-  // Dynamic import to prevent bundling at build time
-  const XLSX = await import('xlsx')
-  
   const session = await requireUserSession(event)
   const query = getQuery(event)
 
@@ -37,7 +34,7 @@ export default defineEventHandler(async (event) => {
   const [inspectors, entries, targets] = await Promise.all([
     prisma.inspector.findMany({
       where: { ...inspectorWhere, isActive: true },
-      orderBy: { name: 'asc' },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       include: { planner: { select: { name: true } } }
     }),
     prisma.turnoverEntry.findMany({
@@ -71,12 +68,12 @@ export default defineEventHandler(async (event) => {
     entryMap.set(key, Number(e.amount))
   })
 
-  // Build worksheet data
-  const wsData: any[][] = []
+  // Build CSV rows
+  const rows: string[] = []
 
   // Header row
   const headers = ['Inspector', 'Planner', ...weekDays.map(d => d.label), 'Total', 'Target', 'Performance']
-  wsData.push(headers)
+  rows.push(headers.join(';'))
 
   // Data rows
   let grandTotal = 0
@@ -87,7 +84,7 @@ export default defineEventHandler(async (event) => {
     const weeklyTarget = dailyTarget * 5
     grandTarget += weeklyTarget
 
-    const row: any[] = [
+    const row: (string | number)[] = [
       inspector.name,
       inspector.planner?.name || 'Unassigned'
     ]
@@ -107,11 +104,11 @@ export default defineEventHandler(async (event) => {
     row.push(weeklyTarget)
     row.push(`${performance}%`)
 
-    wsData.push(row)
+    rows.push(row.join(';'))
   })
 
   // Totals row
-  const totalsRow: any[] = ['TOTAL', '']
+  const totalsRow: (string | number)[] = ['TOTAL', '']
   weekDays.forEach(day => {
     let dayTotal = 0
     inspectors.forEach(inspector => {
@@ -123,35 +120,16 @@ export default defineEventHandler(async (event) => {
   totalsRow.push(grandTotal)
   totalsRow.push(grandTarget)
   totalsRow.push(`${grandTarget > 0 ? Math.round((grandTotal / grandTarget) * 100) : 0}%`)
-  wsData.push(totalsRow)
+  rows.push(totalsRow.join(';'))
 
-  // Create workbook
-  const wb = XLSX.utils.book_new()
-  const ws = XLSX.utils.aoa_to_sheet(wsData)
-
-  // Set column widths
-  ws['!cols'] = [
-    { wch: 20 }, // Inspector
-    { wch: 15 }, // Planner
-    ...weekDays.map(() => ({ wch: 10 })),
-    { wch: 10 }, // Total
-    { wch: 10 }, // Target
-    { wch: 12 }  // Performance
-  ]
-
-  XLSX.utils.book_append_sheet(wb, ws, 'Weekly Report')
-
-  // Generate buffer
-  const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
-
-  // Set response headers
-  const filename = `turnover-report-${startDate.toISOString().split('T')[0]}.xlsx`
+  // Generate CSV content
+  const csv = rows.join('\n')
+  const filename = `turnover-report-${startDate.toISOString().split('T')[0]}.csv`
 
   setResponseHeaders(event, {
-    'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'Content-Disposition': `attachment; filename="${filename}"`,
-    'Content-Length': buffer.length.toString()
+    'Content-Type': 'text/csv; charset=utf-8',
+    'Content-Disposition': `attachment; filename="${filename}"`
   })
 
-  return buffer
+  return csv
 })
