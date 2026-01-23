@@ -20,12 +20,18 @@ export default defineNuxtConfig({
     build: {
       // Reduce memory usage
       sourcemap: false,
+      // Disable reporting to save memory
+      reportCompressedSize: false,
       // Optimize chunk splitting
       rollupOptions: {
         output: {
           manualChunks: undefined
         }
       }
+    },
+    // Reduce memory during build
+    optimizeDeps: {
+      holdUntilCrawlEnd: false
     }
   },
 
@@ -36,10 +42,13 @@ export default defineNuxtConfig({
     minify: false,
     // Disable compression to speed up build
     compressPublicAssets: false,
-    // Externalize xlsx to reduce bundle
-    rollupConfig: {
-      external: ['xlsx']
-    }
+    // Externalize heavy dependencies to reduce bundle and build time
+    externals: {
+      inline: [],
+      external: ['xlsx', '@prisma/client', 'prisma']
+    },
+    // Disable rollup bundling analysis
+    analyze: false
   },
 
   // Icon configuration - use API mode to reduce bundle size
