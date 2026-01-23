@@ -35,14 +35,7 @@ RUN npm run build & \
     done && \
     wait $BUILD_PID
 
-# Stage 3: Production dependencies only
-FROM node:20-alpine AS prod-deps
-WORKDIR /app
-COPY package.json package-lock.json ./
-# Skip postinstall scripts - we only need runtime dependencies
-RUN npm ci --omit=dev --prefer-offline --no-audit --ignore-scripts
-
-# Stage 4: Production
+# Stage 3: Production
 FROM node:20-alpine AS runner
 WORKDIR /app
 
@@ -55,11 +48,8 @@ ENV PORT=3000
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nuxtjs
 
-# Copy build output
+# Copy build output (everything is bundled, no node_modules needed)
 COPY --from=builder --chown=nuxtjs:nodejs /app/.output ./.output
-
-# Copy production dependencies (for externalized packages like xlsx)
-COPY --from=prod-deps --chown=nuxtjs:nodejs /app/node_modules ./node_modules
 
 # Switch to non-root user
 USER nuxtjs
@@ -67,5 +57,5 @@ USER nuxtjs
 # Expose port
 EXPOSE 3000
 
-# Start the application directly (no migrations - run separately)
+# Start the application
 CMD ["node", ".output/server/index.mjs"]

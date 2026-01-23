@@ -42,11 +42,6 @@ export default defineNuxtConfig({
     minify: false,
     // Disable compression to speed up build
     compressPublicAssets: false,
-    // Externalize xlsx only (prisma must be bundled)
-    externals: {
-      inline: ['@prisma/client'],
-      external: ['xlsx']
-    },
     // Disable rollup bundling analysis
     analyze: false
   },
