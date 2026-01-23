@@ -31,8 +31,8 @@ const isActive = (path: string) => {
   return route.path.startsWith(path)
 }
 
-// Impersonation
-const isImpersonating = computed(() => user.value?.isImpersonating === true)
+// Impersonation - check both flags for reliability
+const isImpersonating = computed(() => !!user.value?.originalUserId || user.value?.isImpersonating === true)
 const showImpersonateModal = ref(false)
 const { data: planners } = await useFetch('/api/users', { server: false })
 const plannersList = computed(() => (planners.value || []).filter(u => u.role === 'PLANNER'))
@@ -45,12 +45,10 @@ async function impersonateUser(userId: string) {
       method: 'POST',
       body: { userId }
     })
-    await refreshSession()
-    showImpersonateModal.value = false
-    await navigateTo('/dashboard')
+    // Force full page reload to ensure session is fresh
+    window.location.href = '/dashboard'
   } catch (error) {
     console.error('Failed to impersonate:', error)
-  } finally {
     isImpersonatingUser.value = false
   }
 }

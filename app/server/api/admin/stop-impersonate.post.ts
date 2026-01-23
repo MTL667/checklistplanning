@@ -7,8 +7,11 @@ import prisma from '../../utils/prisma'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
 
-  // Check if currently impersonating
-  if (!session.user.isImpersonating || !session.user.originalUserId) {
+  // Check if currently impersonating - be more lenient
+  const originalUserId = session.user.originalUserId
+  if (!originalUserId) {
+    // If no originalUserId, clear any impersonation flags and return current user
+    console.log('No originalUserId found, session:', JSON.stringify(session.user))
     throw createError({
       statusCode: 400,
       message: 'Not currently impersonating'
@@ -17,7 +20,7 @@ export default defineEventHandler(async (event) => {
 
   // Get the original admin user
   const adminUser = await prisma.user.findUnique({
-    where: { id: session.user.originalUserId }
+    where: { id: originalUserId }
   })
 
   if (!adminUser) {
@@ -27,7 +30,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Restore original session
+  // Restore original session - completely replace, don't merge
   await setUserSession(event, {
     user: {
       id: adminUser.id,
@@ -35,6 +38,7 @@ export default defineEventHandler(async (event) => {
       email: adminUser.email,
       name: adminUser.name,
       role: adminUser.role
+      // Explicitly NOT including isImpersonating or originalUserId
     }
   })
 

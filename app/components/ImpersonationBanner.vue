@@ -1,7 +1,8 @@
 <script setup lang="ts">
 const { user, fetch: refreshSession } = useUserSession()
 
-const isImpersonating = computed(() => user.value?.isImpersonating === true)
+// Check both flags - originalUserId is the most reliable indicator
+const isImpersonating = computed(() => !!user.value?.originalUserId || user.value?.isImpersonating === true)
 const originalUserName = computed(() => user.value?.originalUserName || 'Admin')
 const impersonatedUserName = computed(() => user.value?.name || '')
 
@@ -15,8 +16,10 @@ async function stopImpersonating() {
     })
     // Force full page reload to clear all cached session state
     window.location.href = '/admin'
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to stop impersonating:', error)
+    // Show error to user
+    alert(error.data?.message || 'Failed to stop impersonation')
     isStoppingImpersonation.value = false
   }
 }

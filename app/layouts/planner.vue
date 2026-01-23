@@ -3,7 +3,8 @@ const { t } = useI18n()
 const { user, clear } = useUserSession()
 const route = useRoute()
 
-const isImpersonating = computed(() => user.value?.isImpersonating === true)
+// Check both flags for reliability
+const isImpersonating = computed(() => !!user.value?.originalUserId || user.value?.isImpersonating === true)
 const isLoggingOut = ref(false)
 
 async function logout() {
