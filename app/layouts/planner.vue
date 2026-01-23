@@ -3,6 +3,7 @@ const { t } = useI18n()
 const { user, clear } = useUserSession()
 const route = useRoute()
 
+const isImpersonating = computed(() => user.value?.isImpersonating === true)
 const isLoggingOut = ref(false)
 
 async function logout() {
@@ -34,9 +35,12 @@ const isActive = (path: string) => {
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="flex min-h-screen bg-gray-50 dark:bg-gray-900" :class="{ 'pt-10': isImpersonating }">
+    <!-- Impersonation Banner -->
+    <ImpersonationBanner />
+
     <!-- Sidebar -->
-    <aside class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
+    <aside class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950" :class="{ 'top-10': isImpersonating }">
       <!-- Logo -->
       <div class="flex h-16 items-center gap-3 border-b border-gray-200 px-6 dark:border-gray-800">
         <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-500">
@@ -115,7 +119,7 @@ const isActive = (path: string) => {
     <!-- Main Content -->
     <div class="ml-64 flex-1">
       <!-- Header -->
-      <header class="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 dark:border-gray-800 dark:bg-gray-950">
+      <header class="sticky z-30 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 dark:border-gray-800 dark:bg-gray-950" :class="isImpersonating ? 'top-10' : 'top-0'">
         <slot name="header">
           <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ t('dashboard.title') }}
