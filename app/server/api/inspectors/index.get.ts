@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
 
     const inspectors = await prisma.inspector.findMany({
       where,
-      orderBy: { name: 'asc' },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       include: {
         planner: {
           select: {
