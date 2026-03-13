@@ -105,6 +105,31 @@ async function saveInspector() {
     isSavingInspector.value = false
   }
 }
+
+// Delete inspector
+async function deleteInspector(inspector: any) {
+  if (!confirm(`Are you sure you want to delete inspector "${inspector.name}"? This action cannot be undone.`)) return
+
+  try {
+    await $fetch(`/api/inspectors/${inspector.id}`, {
+      method: 'DELETE'
+    })
+
+    toast.add({
+      title: t('common.delete'),
+      description: 'Inspector deleted successfully',
+      color: 'success'
+    })
+
+    await refreshInspectors()
+  } catch (error: any) {
+    toast.add({
+      title: t('errors.generic'),
+      description: error.data?.message || 'Failed to delete inspector',
+      color: 'error'
+    })
+  }
+}
 </script>
 
 <template>
@@ -165,12 +190,21 @@ async function saveInspector() {
                 </UBadge>
               </td>
               <td class="whitespace-nowrap px-4 py-3 text-right">
-                <UButton
-                  icon="i-lucide-edit"
-                  variant="ghost"
-                  size="sm"
-                  @click="openEditModal(inspector)"
-                />
+                <div class="flex justify-end gap-1">
+                  <UButton
+                    icon="i-lucide-edit"
+                    variant="ghost"
+                    size="sm"
+                    @click="openEditModal(inspector)"
+                  />
+                  <UButton
+                    icon="i-lucide-trash-2"
+                    variant="ghost"
+                    color="red"
+                    size="sm"
+                    @click="deleteInspector(inspector)"
+                  />
+                </div>
               </td>
             </tr>
             <tr v-if="!inspectors?.length">
