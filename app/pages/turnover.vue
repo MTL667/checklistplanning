@@ -217,9 +217,9 @@ function getTargetClass(inspectorId: string, date: string, defaultTarget: number
   }
   
   if (value >= target) {
-    return 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30'
+    return 'text-green-600 dark:text-green-400 font-semibold'
   } else {
-    return 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/30'
+    return 'text-red-600 dark:text-red-400 font-semibold'
   }
 }
 
