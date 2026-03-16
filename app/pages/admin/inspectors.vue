@@ -65,12 +65,14 @@ const isEditing = ref(false)
 const editingInspector = ref<any>(null)
 const editName = ref('')
 const editPlannerId = ref<string | null>(null)
+const editIsActive = ref(true)
 const isSavingInspector = ref(false)
 
 function openEditModal(inspector: any) {
   editingInspector.value = inspector
   editName.value = inspector.name
   editPlannerId.value = inspector.plannerId
+  editIsActive.value = inspector.isActive
   isEditing.value = true
 }
 
@@ -83,7 +85,8 @@ async function saveInspector() {
       method: 'PATCH',
       body: {
         name: editName.value.trim(),
-        plannerId: editPlannerId.value
+        plannerId: editPlannerId.value,
+        isActive: editIsActive.value
       }
     })
 
@@ -305,6 +308,30 @@ async function deleteInspector(inspector: any) {
                   {{ planner.name }}
                 </option>
               </select>
+            </div>
+
+            <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+              <div>
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.status') }}</label>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ editIsActive ? t('planner.active') : 'Inactive' }}
+                </p>
+              </div>
+              <button
+                type="button"
+                :class="[
+                  'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+                  editIsActive ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-600'
+                ]"
+                @click="editIsActive = !editIsActive"
+              >
+                <span
+                  :class="[
+                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                    editIsActive ? 'translate-x-5' : 'translate-x-0'
+                  ]"
+                />
+              </button>
             </div>
           </div>
 
